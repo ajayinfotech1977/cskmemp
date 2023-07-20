@@ -34,7 +34,7 @@ workflows:
         certificates:
           - production_certificate
     integrations:
-      app_store_connect: Codemagic API Key
+      app_store_connect: APIKeyAdminAccess
     scripts:
       - script: xcode-project use-profiles
       - script: flutter packages pub get
