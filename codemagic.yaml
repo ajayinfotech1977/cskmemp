@@ -1,26 +1,14 @@
 workflows:
   ios-workflow:
-    name: appetize simulator build
+    name: iOS Workflow
+    max_build_duration: 120
     scripts:
-        - name: Build unsigned .app
-          script: | 
-            xcodebuild -workspace "ios/Runner.xcworkspace" \
-              -scheme "$XCODE_SCHEME" \
-              -configuration "Debug" \
-              -sdk iphonesimulator \
-              -derivedDataPath ios/output
-            # If you are building a project instead of a workspace:
-            # xcodebuild -project "ios/Runner.xcodeproj" \
-            #   -scheme "$XCODE_SCHEME" \
-            #   -configuration "Debug" \
-            #   -sdk iphonesimulator \
-            #   -derivedDataPath ios/output
-        - name: Create a .zip archive
-          script: | 
-            cd ios/output/Build/Products/Debug-iphonesimulator
-            zip -r ios_app.zip $XCODE_SCHEME.app
+      - script: xcode-project use-profiles
+      - script: flutter packages pub get
+      - name: Flutter build unsigned ipa and automatic versioning
+        script: flutter build ios --debug --no-codesign #--export-options-plist=/Users/builder/export_options.plist
     artifacts:
-      - ios/output/Build/Products/Debug-iphonesimulator/*.zip
+      - build/ios/ipa/*.ipa
     publishing:
       email:
         recipients:
