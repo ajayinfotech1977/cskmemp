@@ -8,7 +8,7 @@ workflows:
       - name: Flutter build unsigned ipa and automatic versioning
         script: flutter build ios --debug --no-codesign #--export-options-plist=/Users/builder/export_options.plist
     artifacts:
-      - build/ios/ipa/*.ipa
+      - build/ios/iphoneos/*.app
     publishing:
       email:
         recipients:
