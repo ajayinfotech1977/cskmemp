@@ -27,6 +27,54 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
     Navigator.pushNamed(context, '/messagetabbedscreen');
   }
 
+  void openMarksEntry(context) {
+    Navigator.pushNamed(context, '/marksentryscreen');
+  }
+
+  void openMarksEntryTermWise(context) {
+    Navigator.pushNamed(context, '/marksentryscreentermwise');
+  }
+
+  void openGradesEntry(context) {
+    Navigator.pushNamed(context, '/gradesentry');
+  }
+
+  void openRemarksEntry(context) {
+    Navigator.pushNamed(context, '/remarksentry');
+  }
+
+  void openAttendanceEntry(context) {
+    Navigator.pushNamed(context, '/attendanceentry');
+  }
+
+  void openTrainingDetailsEntry(context) {
+    Navigator.pushNamed(context, '/trainingdetailsentry');
+  }
+
+  void openDuesList(context) {
+    Navigator.pushNamed(context, '/dueslist');
+  }
+
+  void openSelfSubjectMapping(context) {
+    Navigator.pushNamed(context, '/selfsubjectmapping');
+  }
+
+  void openStudentDetails(context) {
+    Navigator.pushNamed(context, '/studentdetails');
+  }
+
+  void openChangeSection(context) {
+    Navigator.pushNamed(context, '/changesec');
+  }
+
+  void openMarkAttendance(context) {
+    Navigator.pushNamed(context, '/markattendance');
+  }
+
+  void openSchoolExpert(context) {
+    Navigator.pushNamed(context, '/schoolexpert');
+  }
+
   @override
   Widget build(BuildContext context) {
     return GridView.count(
@@ -37,11 +85,78 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
           icon: Icons.task_alt,
           onTap: openTasks,
         ),
+        if (AppConfig.globalSelfSubjectMap == true)
+          ButtonWidget(
+            buttonText: 'Self Subject Mapping',
+            icon: Icons.supervised_user_circle,
+            onTap: openSelfSubjectMapping,
+          ),
+        if (AppConfig.globalClassTeacher == true)
+          ButtonWidget(
+            buttonText: 'Mark Attendance',
+            icon: Icons.assignment_turned_in_sharp,
+            onTap: openMarkAttendance,
+          ),
+        if (AppConfig.globalClassTeacher == true)
+          ButtonWidget(
+            buttonText: 'Dues List',
+            icon: Icons.currency_rupee,
+            onTap: openDuesList,
+          ),
+        if (AppConfig.globalClassTeacher == true)
+          ButtonWidget(
+            buttonText: 'Student Details',
+            icon: Icons.person,
+            onTap: openStudentDetails,
+          ),
+
         if (AppConfig.globalClassTeacher == true)
           ButtonWidget(
             buttonText: 'Class Teacher Smart Messaging',
             icon: Icons.messenger,
             onTap: openMessages,
+          ),
+        if (AppConfig.globalIsSubjectTeacher == true)
+          ButtonWidget(
+            buttonText: 'Marks Entry (Exam Wise)',
+            icon: Icons.edit,
+            onTap: openMarksEntry,
+          ),
+        if (AppConfig.globalIsSubjectTeacher == true)
+          ButtonWidget(
+            buttonText: 'Marks Entry (Term Wise)',
+            icon: Icons.edit,
+            onTap: openMarksEntryTermWise,
+          ),
+        if (AppConfig.globalClassTeacher == true)
+          ButtonWidget(
+            buttonText: 'Grades Entry',
+            icon: Icons.grade,
+            onTap: openGradesEntry,
+          ),
+        if (AppConfig.globalClassTeacher == true)
+          ButtonWidget(
+            buttonText: 'Remarks Entry',
+            icon: Icons.comment_outlined,
+            onTap: openRemarksEntry,
+          ),
+        if (AppConfig.globalClassTeacher == true)
+          ButtonWidget(
+            buttonText: 'Attendance For Report Card',
+            icon: Icons.assignment_outlined,
+            onTap: openAttendanceEntry,
+          ),
+        if (AppConfig.globalIsSubjectTeacher == true)
+          ButtonWidget(
+            buttonText: 'Trainings Attended',
+            icon: Icons.model_training,
+            onTap: openTrainingDetailsEntry,
+          ),
+        if (AppConfig.globalClassTeacher == true)
+          ButtonWidget(
+            buttonText: 'Change Section',
+            icon: Icons.swap_horiz,
+            onTap: openChangeSection,
           ),
         if (AppConfig.globalIsOffSupdt == true)
           ButtonWidget(
@@ -49,6 +164,12 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
             icon: Icons.supervisor_account,
             onTap: openMessages,
           ),
+        // show schoolexpert page to all
+        ButtonWidget(
+          buttonText: 'School Expert',
+          icon: Icons.school,
+          onTap: openSchoolExpert,
+        ),
       ],
     );
   }

@@ -31,6 +31,12 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(AppConfig.globalEname),
         actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.pushNamed(context, '/notifications');
+            },
+          ),
           PopupMenuButton<MenuItem>(
               onSelected: (logout) async {
                 AppConfig.logout();

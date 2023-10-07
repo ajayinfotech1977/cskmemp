@@ -20,6 +20,11 @@ class AppConfig {
   static bool? globalIsTptIncharge = false;
   static bool? globalIsHostelIncharge = false;
   static bool? globalIsAccountant = false;
+  static bool? globalIsSubjectTeacher = false;
+  static String globalFy = "";
+  static bool? globalSelfSubjectMap = false;
+  static String globalUserNoT = "";
+  static String globalFyT = "";
 
   static BoxDecoration boxDecoration() {
     return const BoxDecoration(
@@ -99,6 +104,11 @@ class AppConfig {
         var isTptIncharge = data['isTptIncharge'];
         var isHostelIncharge = data['isHostelIncharge'];
         var isAccountant = data['isAccountant'];
+        var isSubjectTeacher = data['isSubjectTeacher'];
+        var fy = data['fy'];
+        var selfSubjectMap = data['selfSubjectMap'];
+        var usernoT = data['usernoT'];
+        var fyT = data['fyT'];
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setInt('userNo', userNo);
@@ -109,6 +119,11 @@ class AppConfig {
         prefs.setBool('isTptIncharge', isTptIncharge);
         prefs.setBool('isHostelIncharge', isHostelIncharge);
         prefs.setBool('isAccountant', isAccountant);
+        prefs.setBool('isSubjectTeacher', isSubjectTeacher);
+        prefs.setInt('fy', fy);
+        prefs.setBool('selfSubjectMap', selfSubjectMap);
+        prefs.setString('usernoT', usernoT);
+        prefs.setString('fyT', fyT);
 
         await AppConfig.setGlobalVariables();
         // Navigate to the home screen
@@ -118,9 +133,15 @@ class AppConfig {
         logout();
         return Future.value(false);
       }
+    }
+    //if server is not reachable
+    else if (response.statusCode == 500 || response.statusCode == 404) {
+      EasyLoading.showError("Server is not reachable");
+      return Future.value(false);
     } else {
       // The login was unsuccessful
-      logout();
+      EasyLoading.showError(
+          "Server Problem! Please inform admin at 9312375581");
       return Future.value(false);
     }
   }
@@ -176,6 +197,13 @@ class AppConfig {
     await prefs.remove('loggedInState');
     await prefs.remove('othersPendingTasks');
     await prefs.remove('classTeacher');
+    await prefs.remove('isOffSupdt');
+    await prefs.remove('isTptIncharge');
+    await prefs.remove('isHostelIncharge');
+    await prefs.remove('isAccountant');
+    await prefs.remove('isSubjectTeacher');
+    await prefs.remove('fy');
+    await prefs.remove('selfSubjectMap');
   }
 
   static void configLoading() {
@@ -198,6 +226,11 @@ class AppConfig {
       var isTptIncharge = await prefs.getBool('isTptIncharge');
       var isHostelIncharge = await prefs.getBool('isHostelIncharge');
       var isAccountant = await prefs.getBool('isAccountant');
+      var isSubjectTeacher = await prefs.getBool('isSubjectTeacher');
+      var fy = await prefs.getInt('fy').toString();
+      var selfSubjectMap = await prefs.getBool('selfSubjectMap');
+      var usernoT = await prefs.getString('usernoT');
+      var fyT = await prefs.getString('fyT');
 
       globalUserNo = userNo;
       globalEname = ename as String;
@@ -207,6 +240,11 @@ class AppConfig {
       globalIsTptIncharge = isTptIncharge;
       globalIsHostelIncharge = isHostelIncharge;
       globalIsAccountant = isAccountant;
+      globalIsSubjectTeacher = isSubjectTeacher;
+      globalFy = fy;
+      globalSelfSubjectMap = selfSubjectMap;
+      globalUserNoT = usernoT as String;
+      globalFyT = fyT as String;
     }
     // print("globalUserNo= $globalUserNo");
     // print("globalEname= $globalEname");

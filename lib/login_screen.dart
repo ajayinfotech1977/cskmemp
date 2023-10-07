@@ -49,7 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (response.statusCode == 200) {
       EasyLoading.showSuccess('Login Successful');
       // The login was successful
+      //print("response.body = ${response.body}");
       var data = jsonDecode(response.body);
+      //print("data = $data");
       // Save the login state permanently
       var status = data['status'];
       if (status == 'valid') {
@@ -63,6 +65,11 @@ class _LoginScreenState extends State<LoginScreen> {
         var isTptIncharge = data['isTptIncharge'];
         var isHostelIncharge = data['isHostelIncharge'];
         var isAccountant = data['isAccountant'];
+        var isSubjectTeacher = data['isSubjectTeacher'];
+        var fy = data['fy'];
+        var selfSubjectMap = data['selfSubjectMap'];
+        var usernoT = data['usernoT'];
+        var fyT = data['fyT'];
 
         prefs.setInt('userNo', userNo);
         prefs.setString('ename', ename);
@@ -75,6 +82,11 @@ class _LoginScreenState extends State<LoginScreen> {
         prefs.setBool('isTptIncharge', isTptIncharge);
         prefs.setBool('isHostelIncharge', isHostelIncharge);
         prefs.setBool('isAccountant', isAccountant);
+        prefs.setBool('isSubjectTeacher', isSubjectTeacher);
+        prefs.setInt('fy', fy);
+        prefs.setBool('selfSubjectMap', selfSubjectMap);
+        prefs.setString('usernoT', usernoT);
+        prefs.setString('fyT', fyT);
 
         await AppConfig.setGlobalVariables();
 

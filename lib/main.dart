@@ -15,12 +15,15 @@ import 'package:cskmemp/firebase_options.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:cskmemp/marks_entry/exam_screen.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 // TODO: Add stream controller
 import 'package:rxdart/rxdart.dart';
 
 import 'messaging/chat_screen.dart';
 import 'messaging/message_tabbed_screen.dart';
+import 'notifications_sreen.dart';
 
 // used to pass messages from event handler to the UI
 final _messageStreamController = BehaviorSubject<RemoteMessage>();
@@ -79,7 +82,7 @@ void initializeFirebase() async {
   String? token = await messaging.getToken() as String;
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString('deviceToken', token);
-  print('Registration Token=$token');
+  //print('Registration Token=$token');
 
   // TODO: Set up foreground message handler
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -148,7 +151,7 @@ Future<void> showNotification(String title, String message) async {
   AndroidNotificationDetails androidPlatformChannelSpecifics =
       AndroidNotificationDetails(
     'tasks', // Replace with your own channel ID
-    'Smart Task Management', // Replace with your own channel name
+    'CSKM EMP APP', // Replace with your own channel name
     channelDescription:
         'Show all pending tasks to the user', // Replace with your own channel description
     importance: Importance.max,
@@ -249,24 +252,36 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'CSKM EMP',
       home: StreamBuilder(
-        stream: Stream.fromFuture(checkLoginState()),
-        initialData: checkLoginState,
-        builder: (ctx, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            //custom config easyloading
-            //AppConfig.configLoading();
-            //EasyLoading.show(status: "Loading...");
-            return const SpalshScreen();
-          }
-          if (snapshot.data == true) {
-            //EasyLoading.dismiss();
-            return const HomeScreen();
-          } else {
-            //EasyLoading.dismiss();
-            return const LoginScreen();
-          }
-        },
-      ),
+          stream: Connectivity().onConnectivityChanged,
+          builder: (BuildContext context,
+              AsyncSnapshot<ConnectivityResult> snapshot) {
+            final hasConnection =
+                snapshot.hasData && snapshot.data != ConnectivityResult.none;
+            if (hasConnection) {
+              return StreamBuilder(
+                stream: Stream.fromFuture(checkLoginState()),
+                initialData: checkLoginState,
+                builder: (ctx, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    //custom config easyloading
+                    //AppConfig.configLoading();
+                    //EasyLoading.show(status: "Loading...");
+                    return const SpalshScreen();
+                  }
+                  if (snapshot.data == true) {
+                    //EasyLoading.dismiss();
+                    return const HomeScreen();
+                  } else {
+                    //EasyLoading.dismiss();
+                    return const LoginScreen();
+                  }
+                },
+              );
+            } else {
+              //display a message to the user that there is no internet connection
+              return NoInternetWidget();
+            }
+          }),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
@@ -276,6 +291,19 @@ class _MyAppState extends State<MyApp> {
         '/tasktabbedscreen': (context) => TaskTabbedScreen(),
         '/chatscreen': (context) => StudentListScreen(),
         '/messagetabbedscreen': (context) => MessageTabbedScreen(),
+        '/marksentryscreen': (context) => MarksEntryScreen(),
+        '/marksentryscreentermwise': (context) => MarksEntryScreenTermWise(),
+        '/gradesentry': (context) => GradesEntry(),
+        '/remarksentry': (context) => RemarksEntry(),
+        '/attendanceentry': (context) => ExamAttendanceEntry(),
+        '/trainingdetailsentry': (context) => TrainingDetailsEntry(),
+        '/dueslist': (context) => DuesList(),
+        '/selfsubjectmapping': (context) => SelfSubjectMapping(),
+        '/studentdetails': (context) => StudentDetails(),
+        '/changesec': (context) => ChangeSection(),
+        '/markattendance': (context) => MarkAttendance(),
+        '/schoolexpert': (context) => ViewSchoolexpert(),
+        '/notifications': (context) => NotificationScreen(),
       },
       builder: EasyLoading.init(),
     );
@@ -341,6 +369,59 @@ class SplashScreenWidget extends StatelessWidget {
               ),
               SizedBox(height: 16.0),
               Text('Loading...'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NoInternetWidget extends StatelessWidget {
+  const NoInternetWidget({super.key});
+
+  @override
+  Widget build(context) {
+    return Scaffold(
+      body: Container(
+        decoration: AppConfig.boxDecoration(),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/cskm-logo.png',
+                width: 200,
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              Text(
+                "CSKM Public School",
+                style: AppConfig.boldWhite30(),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const Text(
+                "Employee Login",
+                style: TextStyle(
+                  fontSize: 30,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              // show error icon
+              Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 60,
+              ),
+              SizedBox(height: 16.0),
+              Text(
+                'No Internet Connection!',
+                style: AppConfig.normaYellow20(),
+              ),
             ],
           ),
         ),
