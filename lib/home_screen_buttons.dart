@@ -259,7 +259,7 @@ class ButtonWidget extends StatelessWidget {
                     foreground: Paint()
                       ..shader = LinearGradient(
                         colors: [
-                          Color.fromARGB(255, 249, 249, 249)!,
+                          Color.fromARGB(255, 249, 249, 249),
                           Colors.amber
                         ],
                         stops: [0.0, 1.0],

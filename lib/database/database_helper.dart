@@ -15,11 +15,6 @@ class DatabaseHelper {
   DatabaseHelper.internal();
 
   Future<Database> get database async {
-    if (_database != null) {
-      return _database;
-    }
-
-    _database = await initDatabase();
     return _database;
   }
 
