@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:cskmemp/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/gestures.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Notification {
   final String date;
@@ -60,55 +62,112 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+  List<InlineSpan> parseText(String text) {
+    final RegExp urlRegExp =
+        RegExp(r"(?:(?:https?|ftp):\/\/)[\w/\-?=%.]+\.[\w/\-?=%.]+");
+    final List<InlineSpan> spans = [];
+    final List<String> substrings = text.split(urlRegExp);
+    final Iterable<Match> matches = urlRegExp.allMatches(text);
+
+    for (int i = 0; i < substrings.length; i++) {
+      spans.add(TextSpan(text: substrings[i]));
+      if (i < matches.length) {
+        final String url = matches.elementAt(i).group(0)!;
+        // create Uri object from url
+        final Uri uri = Uri.parse(url);
+        spans.add(TextSpan(
+          text: url,
+          style: TextStyle(color: Colors.blue),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () async {
+              if (!await launchUrl(uri)) {
+                throw Exception('Could not launch $uri');
+              }
+            },
+        ));
+      }
+    }
+
+    return spans;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Notifications'),
       ),
-      body: _notifications.isEmpty && !fetched
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : _notifications.isEmpty
-              ? Center(
-                  child: Text('No Notification is yet sent to you'),
-                )
-              : ListView.builder(
-                  itemCount: _notifications.length,
-                  itemBuilder: (context, index) {
-                    final notification = _notifications[index];
-                    return Column(
-                      children: [
-                        Card(
-                          elevation: 5,
-                          margin:
-                              EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                          color: notification.status == 'U'
-                              ? Colors.yellow[100]
-                              : Colors.white,
-                          child: ListTile(
-                            title: notification.status == 'U'
-                                ? Text(
-                                    notification.message,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black),
-                                  )
-                                : Text(
-                                    notification.message,
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                            subtitle: Text(
-                              '${notification.date} ${notification.time}',
-                              style: TextStyle(color: Colors.grey),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromRGBO(96, 200, 252, 1),
+              Color.fromRGBO(96, 200, 252, 0.8),
+              Color.fromRGBO(96, 200, 252, 0.6),
+              Color.fromRGBO(96, 200, 252, 0.4),
+              Color.fromRGBO(96, 200, 252, 0.2),
+              Color.fromRGBO(96, 200, 252, 0.1),
+            ],
+          ),
+        ),
+        child: _notifications.isEmpty && !fetched
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : _notifications.isEmpty
+                ? Center(
+                    child: Text('No Notification is yet sent to you'),
+                  )
+                : ListView.builder(
+                    itemCount: _notifications.length,
+                    itemBuilder: (context, index) {
+                      final notification = _notifications[index];
+                      return Column(
+                        children: [
+                          Card(
+                            elevation: 5,
+                            margin: EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 16),
+                            child: ListTile(
+                              title: notification.status == 'U'
+                                  ? Text.rich(
+                                      TextSpan(
+                                        children:
+                                            parseText(notification.message),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                      ),
+                                    )
+                                  : Text.rich(
+                                      TextSpan(
+                                        children:
+                                            parseText(notification.message),
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                              subtitle: Text(
+                                '${notification.date} ${notification.time}',
+                                style: TextStyle(color: Colors.grey),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                        ],
+                      );
+                    },
+                  ),
+      ),
     );
   }
 }

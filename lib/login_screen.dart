@@ -70,6 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
         var selfSubjectMap = data['selfSubjectMap'];
         var usernoT = data['usernoT'];
         var fyT = data['fyT'];
+        var notificationCount = data['notificationCount'];
 
         prefs.setInt('userNo', userNo);
         prefs.setString('ename', ename);
@@ -87,6 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
         prefs.setBool('selfSubjectMap', selfSubjectMap);
         prefs.setString('usernoT', usernoT);
         prefs.setString('fyT', fyT);
+        prefs.setInt('notificationCount', notificationCount);
 
         await AppConfig.setGlobalVariables();
 

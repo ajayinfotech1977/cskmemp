@@ -17,6 +17,8 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:cskmemp/marks_entry/exam_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 
 // TODO: Add stream controller
 import 'package:rxdart/rxdart.dart';
@@ -193,6 +195,7 @@ class _MyAppState extends State<MyApp> {
    * Done on 05-June-2023
    * ***********************************************************/
   AppUpdateInfo? _updateInfo;
+  //bool _flexibleUpdateAvailable = false;
 
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
 
@@ -218,15 +221,31 @@ class _MyAppState extends State<MyApp> {
   /*************Auto Update Code Completed *****************************/
 
   Future<bool> checkLoginState() async {
-    //Call checkForUpdate() to check and return if an update is available uncomment below line to activate this feature
-    //checkForUpdate();
-    //if an update is available, immediately update it. uncomment below code
-    if (_updateInfo?.updateAvailability == UpdateAvailability.updateAvailable) {
-      //EasyLoading.dismiss();
-      InAppUpdate.performImmediateUpdate()
-          .catchError((e) => showSnack(e.toString()));
+    if (Platform.isAndroid) {
+      //Call checkForUpdate() to check and return if an update is available uncomment below line to activate this feature
+      checkForUpdate();
+      //if an update is available, immediately update it. uncomment below code
+      if (_updateInfo?.updateAvailability ==
+          UpdateAvailability.updateAvailable) {
+        if (_updateInfo!.immediateUpdateAllowed) {
+          // Perform immediate update
+          InAppUpdate.performImmediateUpdate().then((appUpdateResult) {
+            if (appUpdateResult == AppUpdateResult.success) {
+              //App Update successful
+            }
+          });
+        } else if (_updateInfo!.flexibleUpdateAllowed) {
+          //Perform flexible update
+          InAppUpdate.startFlexibleUpdate().then((appUpdateResult) {
+            if (appUpdateResult == AppUpdateResult.success) {
+              //App Update successful
+              InAppUpdate.completeFlexibleUpdate();
+            }
+          });
+        }
+      }
     }
-    ;
+
     /******Auto update calling complete***************/
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -242,6 +261,16 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Future<bool> checkWebsiteStatus() async {
+    final response = await http
+        .get(Uri.parse('https://www.cskm.com/schoolexpert/cskmemp/ping.php'));
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -252,36 +281,47 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'CSKM EMP',
       home: StreamBuilder(
-          stream: Connectivity().onConnectivityChanged,
-          builder: (BuildContext context,
-              AsyncSnapshot<ConnectivityResult> snapshot) {
-            final hasConnection =
-                snapshot.hasData && snapshot.data != ConnectivityResult.none;
-            if (hasConnection) {
-              return StreamBuilder(
-                stream: Stream.fromFuture(checkLoginState()),
-                initialData: checkLoginState,
-                builder: (ctx, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    //custom config easyloading
-                    //AppConfig.configLoading();
-                    //EasyLoading.show(status: "Loading...");
-                    return const SpalshScreen();
-                  }
-                  if (snapshot.data == true) {
-                    //EasyLoading.dismiss();
-                    return const HomeScreen();
-                  } else {
-                    //EasyLoading.dismiss();
-                    return const LoginScreen();
-                  }
-                },
-              );
-            } else {
-              //display a message to the user that there is no internet connection
-              return NoInternetWidget();
-            }
-          }),
+        stream: Connectivity().onConnectivityChanged,
+        builder:
+            (BuildContext context, AsyncSnapshot<ConnectivityResult> snapshot) {
+          final hasConnection =
+              snapshot.hasData && snapshot.data != ConnectivityResult.none;
+          if (hasConnection) {
+            return FutureBuilder(
+              future: checkWebsiteStatus(),
+              builder: (ctx, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (snapshot.data == true) {
+                  return StreamBuilder(
+                    stream: Stream.fromFuture(checkLoginState()),
+                    initialData: checkLoginState,
+                    builder: (ctx, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      if (snapshot.data == true) {
+                        return const HomeScreen();
+                      } else {
+                        return const LoginScreen();
+                      }
+                    },
+                  );
+                } else {
+                  return NoWebsiteWidget();
+                }
+              },
+            );
+          } else {
+            return NoInternetWidget();
+          }
+        },
+      ),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
@@ -421,6 +461,63 @@ class NoInternetWidget extends StatelessWidget {
               Text(
                 'No Internet Connection!',
                 style: AppConfig.normaYellow20(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NoWebsiteWidget extends StatelessWidget {
+  const NoWebsiteWidget({super.key});
+
+  @override
+  Widget build(context) {
+    return Scaffold(
+      body: Container(
+        decoration: AppConfig.boxDecoration(),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/cskm-logo.png',
+                width: 200,
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              Text(
+                "CSKM Public School",
+                style: AppConfig.boldWhite30(),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const Text(
+                "Employee Login",
+                style: TextStyle(
+                  fontSize: 30,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              // show error icon
+              Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 60,
+              ),
+              SizedBox(height: 16.0),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Webserver is down! Please retry after a while.',
+                  style: AppConfig.normaYellow20(),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ],
           ),

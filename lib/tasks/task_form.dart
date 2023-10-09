@@ -54,12 +54,14 @@ class _TaskFormState extends State<TaskForm> {
           //width: double.infinity,
           //height: 10,
           margin: EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
-          decoration:
-              AppConfig.boxDecoration(), // Set the background color here
+          //decoration:
+          //BoxDecoration(color: Colors.blue, shape: BoxShape.rectangle),
+          //AppConfig.boxDecoration(), // Set the background color here
           child: Text(
             employee['ename'],
             style: TextStyle(
-              color: Colors.white, // Set the text color here
+              color: const Color.fromARGB(
+                  255, 13, 13, 13), // Set the text color here
             ),
           ),
         ),
@@ -107,78 +109,99 @@ class _TaskFormState extends State<TaskForm> {
     );
   }
 
-  Form taskFormWidget() {
-    return Form(
-      key: _formKey,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            flex: 2,
-            child: TextFormField(
-              style: AppConfig.normalWhite(),
-              controller: _taskController,
-              decoration: InputDecoration(
-                labelText: 'Task',
-                labelStyle: AppConfig.normaYellow(),
-              ),
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return 'Please enter a task';
-                }
-                return null;
-              },
-            ),
+  Card taskFormWidget() {
+    return Card(
+      elevation: 10.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromRGBO(96, 200, 252, 1),
+              Color.fromRGBO(96, 200, 252, 0.8),
+              Color.fromRGBO(96, 200, 252, 0.6),
+              Color.fromRGBO(96, 200, 252, 0.4),
+              Color.fromRGBO(96, 200, 252, 0.2),
+              Color.fromRGBO(96, 200, 252, 0.1),
+            ],
           ),
-          const SizedBox(width: 8.0),
-          Expanded(
-            flex: 2,
-            child: DropdownButtonFormField<String>(
-              itemHeight: null,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: 'Assign To',
-                labelStyle: AppConfig.normaYellow(),
-              ),
-              items: dropDownItems,
-              value: userNo,
-              onChanged: (value) {
-                setState(() {
-                  userNoSelected = value as String;
-                });
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please select an employee';
-                }
-                return null;
-              },
-            ),
-          ),
-          const SizedBox(width: 8.0),
-          IconButton(
-            icon: _saving
-                ? Container(
-                    width: 24,
-                    height: 24,
-                    padding: const EdgeInsets.all(2.0),
-                    child: const CircularProgressIndicator(
-                      color: Color.fromARGB(255, 236, 244, 250),
-                      strokeWidth: 3,
-                    ),
-                  )
-                : const Icon(Icons.save,
-                    color: Color.fromARGB(255, 236, 244, 250)),
-            onPressed: _saving
-                ? null
-                : () async {
-                    if (_formKey.currentState!.validate()) {
-                      addTask();
-                      //print("Saving...");
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  style: TextStyle(color: const Color.fromARGB(255, 8, 8, 8)),
+                  controller: _taskController,
+                  decoration: InputDecoration(
+                    labelText: 'Task',
+                    labelStyle:
+                        TextStyle(color: const Color.fromARGB(255, 8, 8, 8)),
+                  ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter a task';
                     }
+                    return null;
                   },
+                ),
+                SizedBox(height: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: DropdownButtonFormField<String>(
+                        itemHeight: null,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          labelText: 'Assign To',
+                          labelStyle:
+                              TextStyle(color: Color.fromARGB(255, 8, 8, 8)),
+                        ),
+                        items: dropDownItems,
+                        value: userNoSelected,
+                        onChanged: (value) {
+                          setState(() {
+                            userNoSelected = value!;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please select an employee';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 16.0),
+                    Expanded(
+                      flex: 1,
+                      child: ElevatedButton.icon(
+                        label: Text('Save'),
+                        icon: Icon(Icons.save),
+                        onPressed: _saving
+                            ? null
+                            : () async {
+                                if (_formKey.currentState!.validate()) {
+                                  addTask();
+                                }
+                              },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

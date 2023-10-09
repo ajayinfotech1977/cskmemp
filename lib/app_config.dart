@@ -25,6 +25,7 @@ class AppConfig {
   static bool? globalSelfSubjectMap = false;
   static String globalUserNoT = "";
   static String globalFyT = "";
+  static int globalNotificationCount = 0;
 
   static BoxDecoration boxDecoration() {
     return const BoxDecoration(
@@ -109,6 +110,7 @@ class AppConfig {
         var selfSubjectMap = data['selfSubjectMap'];
         var usernoT = data['usernoT'];
         var fyT = data['fyT'];
+        var notificationCount = data['notificationCount'];
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setInt('userNo', userNo);
@@ -124,6 +126,7 @@ class AppConfig {
         prefs.setBool('selfSubjectMap', selfSubjectMap);
         prefs.setString('usernoT', usernoT);
         prefs.setString('fyT', fyT);
+        prefs.setInt('notificationCount', notificationCount);
 
         await AppConfig.setGlobalVariables();
         // Navigate to the home screen
@@ -204,6 +207,9 @@ class AppConfig {
     await prefs.remove('isSubjectTeacher');
     await prefs.remove('fy');
     await prefs.remove('selfSubjectMap');
+    await prefs.remove('usernoT');
+    await prefs.remove('fyT');
+    await prefs.remove('notificationCount');
   }
 
   static void configLoading() {
@@ -231,6 +237,7 @@ class AppConfig {
       var selfSubjectMap = await prefs.getBool('selfSubjectMap');
       var usernoT = await prefs.getString('usernoT');
       var fyT = await prefs.getString('fyT');
+      var notificationCount = await prefs.getInt('notificationCount');
 
       globalUserNo = userNo;
       globalEname = ename as String;
@@ -245,6 +252,7 @@ class AppConfig {
       globalSelfSubjectMap = selfSubjectMap;
       globalUserNoT = usernoT as String;
       globalFyT = fyT as String;
+      globalNotificationCount = notificationCount as int;
     }
     // print("globalUserNo= $globalUserNo");
     // print("globalEname= $globalEname");

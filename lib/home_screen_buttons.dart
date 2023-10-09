@@ -75,6 +75,10 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
     Navigator.pushNamed(context, '/schoolexpert');
   }
 
+  void openNotifications(context) {
+    Navigator.pushNamed(context, '/notifications');
+  }
+
   @override
   Widget build(BuildContext context) {
     return GridView.count(
@@ -84,6 +88,12 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
           buttonText: 'Smart Task Management',
           icon: Icons.task_alt,
           onTap: openTasks,
+        ),
+        ButtonWidget(
+          buttonText: 'Notifications',
+          icon: Icons.notifications,
+          onTap: openNotifications,
+          count: AppConfig.globalNotificationCount,
         ),
         if (AppConfig.globalSelfSubjectMap == true)
           ButtonWidget(
@@ -179,11 +189,13 @@ class ButtonWidget extends StatelessWidget {
   final String buttonText;
   final IconData icon;
   final Function onTap;
+  final int count;
   const ButtonWidget({
     super.key,
     required this.buttonText,
     required this.icon,
     required this.onTap,
+    this.count = 0,
   });
 
   @override
@@ -202,15 +214,60 @@ class ButtonWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(
-                  icon,
-                  size: 40,
-                  color: Colors.yellow,
+                ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return LinearGradient(
+                      colors: [Colors.grey[400]!, Colors.amber],
+                      stops: [0.0, 1.0],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      tileMode: TileMode.clamp,
+                    ).createShader(bounds);
+                  },
+                  child: Stack(
+                    children: [
+                      Icon(
+                        icon,
+                        size: 40,
+                        //color: Color.fromARGB(255, 103, 98, 98),
+                      ),
+                      if (count > 0)
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.red,
+                            radius: 10,
+                            child: Text(
+                              count.toString(),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 SizedBox(height: 8.0),
                 Text(
                   buttonText,
-                  style: AppConfig.normaYellow20(),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    foreground: Paint()
+                      ..shader = LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 249, 249, 249)!,
+                          Colors.amber
+                        ],
+                        stops: [0.0, 1.0],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        tileMode: TileMode.clamp,
+                      ).createShader(Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],

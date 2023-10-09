@@ -76,12 +76,13 @@ class _PendingTaskFormState extends State<PendingTaskForm> {
           //width: double.infinity,
           //height: 10,
           margin: EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
-          decoration:
-              AppConfig.boxDecoration(), // Set the background color here
+          //decoration:
+          //  AppConfig.boxDecoration(), // Set the background color here
           child: Text(
             employee['ename'],
             style: TextStyle(
-              color: Colors.white, // Set the text color here
+              color: const Color.fromARGB(
+                  255, 16, 16, 16), // Set the text color here
             ),
           ),
         ),
@@ -102,40 +103,72 @@ class _PendingTaskFormState extends State<PendingTaskForm> {
     return Center(
       child: Column(
         children: [
-          Form(
-            key: _formKey,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                const SizedBox(width: 16.0),
-                Expanded(
-                  flex: 2,
-                  child: DropdownButtonFormField<String>(
-                    itemHeight: null,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      labelText: 'Show Pending Tasks of:',
-                      labelStyle: AppConfig.normaYellow(),
-                    ),
-                    items: dropDownItems,
-                    //value: userNo,
-                    onChanged: (value) {
-                      setState(() {
-                        userNoSelected = value as String;
-                        fetchPendingTasks();
-                        //print("userNoSelected = $userNoSelected");
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select an employee';
-                      }
-                      return null;
-                    },
+          Card(
+            elevation: 10.0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(10.0),
+                bottomRight: Radius.circular(10.0),
+              ),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color.fromRGBO(96, 200, 252, 1),
+                    Color.fromRGBO(96, 200, 252, 0.8),
+                    Color.fromRGBO(96, 200, 252, 0.6),
+                    Color.fromRGBO(96, 200, 252, 0.4),
+                    Color.fromRGBO(96, 200, 252, 0.2),
+                    Color.fromRGBO(96, 200, 252, 0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(10.0),
+                  bottomRight: Radius.circular(10.0),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const SizedBox(width: 16.0),
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButtonFormField<String>(
+                          itemHeight: null,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            labelText: 'Show Pending Tasks of:',
+                            labelStyle: TextStyle(
+                                color: const Color.fromARGB(255, 11, 11, 11)),
+                          ),
+                          items: dropDownItems,
+                          value: userNoSelected,
+                          onChanged: (value) {
+                            setState(() {
+                              userNoSelected = value!;
+                              fetchPendingTasks();
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please select an employee';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16.0),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 16.0),
-              ],
+              ),
             ),
           ),
           const SizedBox(

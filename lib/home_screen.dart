@@ -32,7 +32,27 @@ class HomeScreen extends StatelessWidget {
         title: Text(AppConfig.globalEname),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications),
+                if (AppConfig.globalNotificationCount > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: CircleAvatar(
+                      backgroundColor: Colors.red,
+                      radius: 7,
+                      child: Text(
+                        AppConfig.globalNotificationCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             onPressed: () {
               Navigator.pushNamed(context, '/notifications');
             },
