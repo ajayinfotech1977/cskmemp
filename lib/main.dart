@@ -197,41 +197,47 @@ class _MyAppState extends State<MyApp> {
   AppUpdateInfo? _updateInfo;
   //bool _flexibleUpdateAvailable = false;
 
-  GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
+  //GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
 
   //bool _flexibleUpdateAvailable = false;
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> checkForUpdate() async {
     InAppUpdate.checkForUpdate().then((info) {
-      setState(() {
-        _updateInfo = info;
-      });
+      //setState(() {
+      _updateInfo = info;
+      //print('Update Availability: ${_updateInfo?.updateAvailability}');
+      if (_updateInfo?.updateAvailability ==
+          UpdateAvailability.updateAvailable) {
+        InAppUpdate.performImmediateUpdate().catchError((e) {
+          //showSnack(e.toString());
+          return AppUpdateResult.inAppUpdateFailed;
+        });
+      }
+      //});
     }).catchError((e) {
-      showSnack(e.toString());
+      //print('Error Checking for update: $e');
+      //showSnack(e.toString());
     });
   }
 
-  void showSnack(String text) {
-    if (_scaffoldKey.currentContext != null) {
-      ScaffoldMessenger.of(_scaffoldKey.currentContext!)
-          .showSnackBar(SnackBar(content: Text(text)));
-    }
-  }
+  // void showSnack(String text) {
+  //   if (_scaffoldKey.currentContext != null) {
+  //     ScaffoldMessenger.of(_scaffoldKey.currentContext!)
+  //         .showSnackBar(SnackBar(content: Text(text)));
+  //   }
+  // }
   /*************Auto Update Code Completed *****************************/
 
   Future<bool> checkLoginState() async {
     if (Platform.isAndroid) {
+      //print('Android');
+      //print('Checking for update');
       //Call checkForUpdate() to check and return if an update is available uncomment below line to activate this feature
       checkForUpdate();
+
+      //print('Update checked');
       //if an update is available, immediately update it. uncomment below code
-      if (_updateInfo?.updateAvailability ==
-          UpdateAvailability.updateAvailable) {
-        InAppUpdate.performImmediateUpdate().catchError((e) {
-          showSnack(e.toString());
-          return AppUpdateResult.inAppUpdateFailed;
-        });
-      }
     }
 
     /******Auto update calling complete***************/
@@ -279,9 +285,7 @@ class _MyAppState extends State<MyApp> {
               future: checkWebsiteStatus(),
               builder: (ctx, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return SplashScreenWidget();
                 }
                 if (snapshot.data == true) {
                   return StreamBuilder(
@@ -289,9 +293,7 @@ class _MyAppState extends State<MyApp> {
                     initialData: checkLoginState,
                     builder: (ctx, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return SplashScreenWidget();
                       }
                       if (snapshot.data == true) {
                         return const HomeScreen();
