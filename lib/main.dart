@@ -227,22 +227,10 @@ class _MyAppState extends State<MyApp> {
       //if an update is available, immediately update it. uncomment below code
       if (_updateInfo?.updateAvailability ==
           UpdateAvailability.updateAvailable) {
-        if (_updateInfo!.immediateUpdateAllowed) {
-          // Perform immediate update
-          InAppUpdate.performImmediateUpdate().then((appUpdateResult) {
-            if (appUpdateResult == AppUpdateResult.success) {
-              //App Update successful
-            }
-          });
-        } else if (_updateInfo!.flexibleUpdateAllowed) {
-          //Perform flexible update
-          InAppUpdate.startFlexibleUpdate().then((appUpdateResult) {
-            if (appUpdateResult == AppUpdateResult.success) {
-              //App Update successful
-              InAppUpdate.completeFlexibleUpdate();
-            }
-          });
-        }
+        InAppUpdate.performImmediateUpdate().catchError((e) {
+          showSnack(e.toString());
+          return AppUpdateResult.inAppUpdateFailed;
+        });
       }
     }
 
