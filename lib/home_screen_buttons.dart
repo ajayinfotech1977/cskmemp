@@ -134,115 +134,118 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 3,
-      children: [
-        ButtonWidget(
-          buttonText: 'Smart Task Management',
-          icon: Icons.task_alt,
-          onTap: openTasks,
-        ),
-        ButtonWidget(
-          buttonText: 'Notifications',
-          icon: Icons.notifications,
-          onTap: openNotifications,
-          count: AppConfig.globalnotificationCount,
-        ),
-        ButtonWidget(
-          buttonText: 'Notifications - Parents',
-          icon: Icons.notifications_active,
-          onTap: openSendNotifications,
-        ),
-        ButtonWidget(
-          buttonText: 'Messaging - Parents',
-          icon: Icons.messenger,
-          onTap: openMessages,
-          count: AppConfig.globalmessageCount,
-        ),
-        if (AppConfig.globalSelfSubjectMap == true)
+    return Padding(
+      padding: EdgeInsets.fromLTRB(2, 10, 2, 10),
+      child: GridView.count(
+        crossAxisCount: 3,
+        children: [
           ButtonWidget(
-            buttonText: 'Self Subject Mapping',
-            icon: Icons.supervised_user_circle,
-            onTap: openSelfSubjectMapping,
+            buttonText: 'Smart Task Management',
+            icon: Icons.task_alt,
+            onTap: openTasks,
           ),
-        if (AppConfig.globalClassTeacher == true)
           ButtonWidget(
-            buttonText: 'Mark Attendance',
-            icon: Icons.assignment_turned_in_sharp,
-            onTap: openMarkAttendance,
+            buttonText: 'Notifications',
+            icon: Icons.notifications,
+            onTap: openNotifications,
+            count: AppConfig.globalnotificationCount,
           ),
-        if (AppConfig.globalClassTeacher == true)
           ButtonWidget(
-            buttonText: 'Dues List',
-            icon: Icons.currency_rupee,
-            onTap: openDuesList,
+            buttonText: 'Notifications - Parents',
+            icon: Icons.notifications_active,
+            onTap: openSendNotifications,
           ),
-        if (AppConfig.globalClassTeacher == true)
           ButtonWidget(
-            buttonText: 'Student Details',
-            icon: Icons.person,
-            onTap: openStudentDetails,
+            buttonText: 'Messaging - Parents',
+            icon: Icons.messenger,
+            onTap: openMessages,
+            count: AppConfig.globalmessageCount,
           ),
-        ButtonWidget(
-          buttonText: 'Parents App Install Status',
-          icon: Icons.mobile_friendly,
-          onTap: openParentsAppInstallStatus,
-        ),
+          if (AppConfig.globalSelfSubjectMap == true)
+            ButtonWidget(
+              buttonText: 'Self Subject Mapping',
+              icon: Icons.supervised_user_circle,
+              onTap: openSelfSubjectMapping,
+            ),
+          if (AppConfig.globalClassTeacher == true)
+            ButtonWidget(
+              buttonText: 'Mark Attendance',
+              icon: Icons.assignment_turned_in_sharp,
+              onTap: openMarkAttendance,
+            ),
+          if (AppConfig.globalClassTeacher == true)
+            ButtonWidget(
+              buttonText: 'Dues List',
+              icon: Icons.currency_rupee,
+              onTap: openDuesList,
+            ),
+          if (AppConfig.globalClassTeacher == true)
+            ButtonWidget(
+              buttonText: 'Student Details',
+              icon: Icons.person,
+              onTap: openStudentDetails,
+            ),
+          ButtonWidget(
+            buttonText: 'Parents App Install Status',
+            icon: Icons.mobile_friendly,
+            onTap: openParentsAppInstallStatus,
+          ),
 
-        if (AppConfig.globalIsSubjectTeacher == true)
+          if (AppConfig.globalIsSubjectTeacher == true)
+            ButtonWidget(
+              buttonText: 'Marks Entry (Exam Wise)',
+              icon: Icons.edit_note,
+              onTap: openMarksEntry,
+            ),
+          if (AppConfig.globalIsSubjectTeacher == true)
+            ButtonWidget(
+              buttonText: 'Marks Entry (Term Wise)',
+              icon: Icons.edit_document,
+              onTap: openMarksEntryTermWise,
+            ),
+          if (AppConfig.globalClassTeacher == true)
+            ButtonWidget(
+              buttonText: 'Grades Entry',
+              icon: Icons.grade,
+              onTap: openGradesEntry,
+            ),
+          if (AppConfig.globalClassTeacher == true)
+            ButtonWidget(
+              buttonText: 'Remarks Entry',
+              icon: Icons.comment_outlined,
+              onTap: openRemarksEntry,
+            ),
+          if (AppConfig.globalClassTeacher == true)
+            ButtonWidget(
+              buttonText: 'Attendance For Report Card',
+              icon: Icons.assignment_outlined,
+              onTap: openAttendanceEntry,
+            ),
+          if (AppConfig.globalIsSubjectTeacher == true)
+            ButtonWidget(
+              buttonText: 'Trainings Attended',
+              icon: Icons.model_training,
+              onTap: openTrainingDetailsEntry,
+            ),
+          if (AppConfig.globalClassTeacher == true)
+            ButtonWidget(
+              buttonText: 'Change Section',
+              icon: Icons.swap_horiz,
+              onTap: openChangeSection,
+            ),
+          // show schoolexpert page to all
           ButtonWidget(
-            buttonText: 'Marks Entry (Exam Wise)',
-            icon: Icons.edit_note,
-            onTap: openMarksEntry,
+            buttonText: 'School Expert',
+            icon: Icons.school,
+            onTap: openSchoolExpert,
           ),
-        if (AppConfig.globalIsSubjectTeacher == true)
           ButtonWidget(
-            buttonText: 'Marks Entry (Term Wise)',
-            icon: Icons.edit_document,
-            onTap: openMarksEntryTermWise,
+            buttonText: 'Photo Gallery',
+            icon: Icons.photo_library,
+            onTap: openPhotoGallery,
           ),
-        if (AppConfig.globalClassTeacher == true)
-          ButtonWidget(
-            buttonText: 'Grades Entry',
-            icon: Icons.grade,
-            onTap: openGradesEntry,
-          ),
-        if (AppConfig.globalClassTeacher == true)
-          ButtonWidget(
-            buttonText: 'Remarks Entry',
-            icon: Icons.comment_outlined,
-            onTap: openRemarksEntry,
-          ),
-        if (AppConfig.globalClassTeacher == true)
-          ButtonWidget(
-            buttonText: 'Attendance For Report Card',
-            icon: Icons.assignment_outlined,
-            onTap: openAttendanceEntry,
-          ),
-        if (AppConfig.globalIsSubjectTeacher == true)
-          ButtonWidget(
-            buttonText: 'Trainings Attended',
-            icon: Icons.model_training,
-            onTap: openTrainingDetailsEntry,
-          ),
-        if (AppConfig.globalClassTeacher == true)
-          ButtonWidget(
-            buttonText: 'Change Section',
-            icon: Icons.swap_horiz,
-            onTap: openChangeSection,
-          ),
-        // show schoolexpert page to all
-        ButtonWidget(
-          buttonText: 'School Expert',
-          icon: Icons.school,
-          onTap: openSchoolExpert,
-        ),
-        ButtonWidget(
-          buttonText: 'Photo Gallery',
-          icon: Icons.photo_library,
-          onTap: openPhotoGallery,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -263,7 +266,7 @@ class ButtonWidget extends StatelessWidget {
   @override
   Widget build(context) {
     return Padding(
-      padding: const EdgeInsets.all(4.0),
+      padding: const EdgeInsets.all(2.0),
       child: SizedBox(
         //height: 60.0,
         child: DecoratedBox(
