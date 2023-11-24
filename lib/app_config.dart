@@ -25,7 +25,11 @@ class AppConfig {
   static bool? globalSelfSubjectMap = false;
   static String globalUserNoT = "";
   static String globalFyT = "";
-  static int globalNotificationCount = 0;
+  static int globalnotificationCount = 0;
+  static int globalmessageCount = 0;
+  static bool isNewMessage = false;
+  static bool isChatScreenActive = false;
+  static bool isNotificationScreenActive = false;
 
   static BoxDecoration boxDecoration() {
     return const BoxDecoration(
@@ -81,71 +85,79 @@ class AppConfig {
     );
   }
 
-  Future<bool> checkLogin({
+  Future<String> checkLogin({
     @required userid,
     @required password1,
   }) async {
-    var response = await http.post(
-      Uri.parse('https://www.cskm.com/schoolexpert/cskmemp/checkLogin.php'),
-      body: {
-        'username': userid,
-        'password': password1,
-        'encrypted': 'Yes',
-      },
-    );
-    if (response.statusCode == 200) {
-      var data = jsonDecode(response.body);
-      var status = data['status'];
-      if (status == 'valid') {
-        var userNo = data['userNo'];
-        var ename = data['ename'];
-        var othersPendingTasks = data['othersPendingTasks'];
-        var classTeacher = data['classTeacher'];
-        var isOffSupdt = data['isOffSupdt'];
-        var isTptIncharge = data['isTptIncharge'];
-        var isHostelIncharge = data['isHostelIncharge'];
-        var isAccountant = data['isAccountant'];
-        var isSubjectTeacher = data['isSubjectTeacher'];
-        var fy = data['fy'];
-        var selfSubjectMap = data['selfSubjectMap'];
-        var usernoT = data['usernoT'];
-        var fyT = data['fyT'];
-        var notificationCount = data['notificationCount'];
+    //print("sending post request to server");
+    try {
+      var response = await http.post(
+        Uri.parse('https://www.cskm.com/schoolexpert/cskmemp/checkLogin.php'),
+        body: {
+          'username': userid,
+          'password': password1,
+          'encrypted': 'Yes',
+        },
+      );
+      //print("response = ${response.body}");
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        var status = data['status'];
+        if (status == 'valid') {
+          var userNo = data['userNo'];
+          var ename = data['ename'];
+          var othersPendingTasks = data['othersPendingTasks'];
+          var classTeacher = data['classTeacher'];
+          var isOffSupdt = data['isOffSupdt'];
+          var isTptIncharge = data['isTptIncharge'];
+          var isHostelIncharge = data['isHostelIncharge'];
+          var isAccountant = data['isAccountant'];
+          var isSubjectTeacher = data['isSubjectTeacher'];
+          var fy = data['fy'];
+          var selfSubjectMap = data['selfSubjectMap'];
+          var usernoT = data['usernoT'];
+          var fyT = data['fyT'];
+          var notificationCount = data['notificationCount'];
+          var messageCount = data['messageCount'];
 
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setInt('userNo', userNo);
-        prefs.setString('ename', ename);
-        prefs.setBool('othersPendingTasks', othersPendingTasks);
-        prefs.setBool('classTeacher', classTeacher);
-        prefs.setBool('isOffSupdt', isOffSupdt);
-        prefs.setBool('isTptIncharge', isTptIncharge);
-        prefs.setBool('isHostelIncharge', isHostelIncharge);
-        prefs.setBool('isAccountant', isAccountant);
-        prefs.setBool('isSubjectTeacher', isSubjectTeacher);
-        prefs.setInt('fy', fy);
-        prefs.setBool('selfSubjectMap', selfSubjectMap);
-        prefs.setString('usernoT', usernoT);
-        prefs.setString('fyT', fyT);
-        prefs.setInt('notificationCount', notificationCount);
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setInt('userNo', userNo);
+          prefs.setString('ename', ename);
+          prefs.setBool('othersPendingTasks', othersPendingTasks);
+          prefs.setBool('classTeacher', classTeacher);
+          prefs.setBool('isOffSupdt', isOffSupdt);
+          prefs.setBool('isTptIncharge', isTptIncharge);
+          prefs.setBool('isHostelIncharge', isHostelIncharge);
+          prefs.setBool('isAccountant', isAccountant);
+          prefs.setBool('isSubjectTeacher', isSubjectTeacher);
+          prefs.setInt('fy', fy);
+          prefs.setBool('selfSubjectMap', selfSubjectMap);
+          prefs.setString('usernoT', usernoT);
+          prefs.setString('fyT', fyT);
+          prefs.setInt('notificationCount', notificationCount);
+          prefs.setInt('messageCount', messageCount);
 
-        await AppConfig.setGlobalVariables();
-        // Navigate to the home screen
-        return Future.value(true);
+          await AppConfig.setGlobalVariables();
+          // Navigate to the home screen
+          return Future.value("valid");
+        } else {
+          // The login was unsuccessful
+          logout();
+          return Future.value("invalid");
+        }
+      }
+      //if server is not reachable
+      else if (response.statusCode == 500 || response.statusCode == 404) {
+        //EasyLoading.showError("Server is not reachable");
+        return Future.value("serverNotReachable");
       } else {
         // The login was unsuccessful
-        logout();
-        return Future.value(false);
+        //EasyLoading.showError(
+        //"Server Problem! Please inform admin at 9312375581");
+        return Future.value("serverDown");
       }
-    }
-    //if server is not reachable
-    else if (response.statusCode == 500 || response.statusCode == 404) {
-      EasyLoading.showError("Server is not reachable");
-      return Future.value(false);
-    } else {
-      // The login was unsuccessful
-      EasyLoading.showError(
-          "Server Problem! Please inform admin at 9312375581");
-      return Future.value(false);
+    } catch (Exception) {
+      return Future.value("serverNotReachable");
     }
   }
 
@@ -210,6 +222,7 @@ class AppConfig {
     await prefs.remove('usernoT');
     await prefs.remove('fyT');
     await prefs.remove('notificationCount');
+    await prefs.remove('messageCount');
   }
 
   static void configLoading() {
@@ -238,6 +251,7 @@ class AppConfig {
       var usernoT = await prefs.getString('usernoT');
       var fyT = await prefs.getString('fyT');
       var notificationCount = await prefs.getInt('notificationCount');
+      var messageCount = await prefs.getInt('messageCount');
 
       globalUserNo = userNo;
       globalEname = ename as String;
@@ -252,7 +266,8 @@ class AppConfig {
       globalSelfSubjectMap = selfSubjectMap;
       globalUserNoT = usernoT as String;
       globalFyT = fyT as String;
-      globalNotificationCount = notificationCount as int;
+      globalnotificationCount = notificationCount as int;
+      globalmessageCount = messageCount as int;
     }
     // print("globalUserNo= $globalUserNo");
     // print("globalEname= $globalEname");

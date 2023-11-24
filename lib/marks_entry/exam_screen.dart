@@ -96,6 +96,16 @@ class StudentDetails extends StatelessWidget {
   }
 }
 
+class ParentsAppInstallStatus extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return WebViewApp(
+      title: 'Parents App Install Status',
+      url: 'https://www.cskm.com/schoolexpert/parentAppStatus.asp',
+    );
+  }
+}
+
 class ChangeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

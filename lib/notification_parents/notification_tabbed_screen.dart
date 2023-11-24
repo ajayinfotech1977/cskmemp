@@ -1,17 +1,15 @@
-import 'dart:async';
-import 'package:cskmemp/messaging/broadcast_form.dart';
 import 'package:flutter/material.dart';
-import 'package:cskmemp/messaging/chat_screen.dart';
-import 'package:cskmemp/custom_data_stream.dart';
+import 'package:cskmemp/notification_parents/broadcast_form.dart';
+import 'package:cskmemp/notification_parents/students_form.dart';
+import 'package:cskmemp/notification_parents/notification_report.dart';
 
-class MessageTabbedScreen extends StatefulWidget {
-  final StreamController<CustomData> stream;
-  MessageTabbedScreen({required this.stream});
+class NotificationTabbedScreen extends StatefulWidget {
   @override
-  _MessageTabbedScreenState createState() => _MessageTabbedScreenState();
+  _NotificationTabbedScreenState createState() =>
+      _NotificationTabbedScreenState();
 }
 
-class _MessageTabbedScreenState extends State<MessageTabbedScreen>
+class _NotificationTabbedScreenState extends State<NotificationTabbedScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -19,7 +17,7 @@ class _MessageTabbedScreenState extends State<MessageTabbedScreen>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 2,
+      length: 3,
       vsync: this,
     );
   }
@@ -34,12 +32,13 @@ class _MessageTabbedScreenState extends State<MessageTabbedScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('CSKM Smart Messaging'),
+        title: Text('Send Notification - Parents'),
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(text: 'Students'),
             Tab(text: 'Broadcast'),
+            Tab(text: 'Selected Students'),
+            Tab(text: 'Report'),
           ],
         ),
       ),
@@ -62,17 +61,25 @@ class _MessageTabbedScreenState extends State<MessageTabbedScreen>
         controller: _tabController,
         children: [
           // Screen 1 content
+          BroadcastForm(),
+          // Screen 2 content
           Center(
             child: Container(
               height: double.infinity,
               child: Center(
-                child: StudentListScreen(streamReadMessages: widget.stream),
+                child: NotificationSelectedParents(),
               ),
             ),
           ),
-          // Screen 2 content
-
-          BroadcastForm(),
+          // Screen 3 content
+          Center(
+            child: Container(
+              height: double.infinity,
+              child: Center(
+                child: NotificationReport(),
+              ),
+            ),
+          ),
         ],
       ),
     );

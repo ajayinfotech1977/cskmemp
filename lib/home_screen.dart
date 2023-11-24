@@ -1,32 +1,46 @@
+import 'dart:async';
 import 'package:cskmemp/app_config.dart';
 import 'package:cskmemp/home_screen_buttons.dart';
 import 'package:flutter/material.dart';
+import 'package:cskmemp/notifications_sreen.dart';
+import 'package:cskmemp/custom_data_stream.dart';
+
+StreamController<CustomData> streamController =
+    StreamController<CustomData>.broadcast();
 
 enum MenuItem {
   logout,
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  // Future<String> fetchEmpName() async {
-  //   //EasyLoading.show(status: 'loading...');
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   var ename = prefs.getString('ename');
-  //   //EasyLoading.dismiss();
-  //   return Future.value(ename);
-  // }
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    streamController.stream.listen((customData) {
+      if (mounted) {
+        // print('customData.form: ${customData.form}');
+        // print('customData.count: ${customData.count}');
+        setState(() {
+          if (customData.form == 'message') {
+            AppConfig.globalmessageCount =
+                AppConfig.globalmessageCount - customData.count;
+          } else if (customData.form == 'notification') {
+            AppConfig.globalnotificationCount = customData.count;
+          }
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    // return StreamBuilder(
-    //     stream: Stream.fromFuture(fetchEmpName()),
-    //     builder: (ctx, snapshot) {
-    //       if (snapshot.connectionState == ConnectionState.waiting) {
-    //         return const SpalshScreen();
-    //       } else {
-    //         ename = snapshot.data!;
-    //       }
     return Scaffold(
       appBar: AppBar(
         title: Text(AppConfig.globalEname),
@@ -35,7 +49,7 @@ class HomeScreen extends StatelessWidget {
             icon: Stack(
               children: [
                 const Icon(Icons.notifications),
-                if (AppConfig.globalNotificationCount > 0)
+                if (AppConfig.globalnotificationCount > 0)
                   Positioned(
                     right: 0,
                     top: 0,
@@ -43,7 +57,7 @@ class HomeScreen extends StatelessWidget {
                       backgroundColor: Colors.red,
                       radius: 7,
                       child: Text(
-                        AppConfig.globalNotificationCount.toString(),
+                        AppConfig.globalnotificationCount.toString(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -54,7 +68,14 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
             onPressed: () {
-              Navigator.pushNamed(context, '/notifications');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificationScreen(
+                    stream: streamController,
+                  ),
+                ),
+              );
             },
           ),
           PopupMenuButton<MenuItem>(

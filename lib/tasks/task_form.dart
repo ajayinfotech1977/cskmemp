@@ -185,8 +185,20 @@ class _TaskFormState extends State<TaskForm> {
                     Expanded(
                       flex: 1,
                       child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.all(16.0)),
                         label: Text('Save'),
-                        icon: Icon(Icons.save),
+                        icon: _saving
+                            ? Container(
+                                width: 24,
+                                height: 24,
+                                padding: const EdgeInsets.all(2.0),
+                                child: const CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3,
+                                ),
+                              )
+                            : Icon(Icons.save),
                         onPressed: _saving
                             ? null
                             : () async {

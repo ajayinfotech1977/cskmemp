@@ -1,9 +1,12 @@
-import 'dart:convert';
+import 'package:intl/intl.dart';
+import 'dart:async';
 import 'package:cskmemp/app_config.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cskmemp/database/database_helper.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cskmemp/custom_data_stream.dart';
 
 class Notification {
   final String date;
@@ -17,9 +20,32 @@ class Notification {
     required this.message,
     required this.status,
   });
+
+  factory Notification.fromMap(Map<String, dynamic> map) {
+    final notificationDate =
+        DateFormat("dd-MMM-yyyy hh:mm a").parse(map['notificationDate']);
+
+    // Extract date and time from notificationDate
+    final date = DateFormat("dd-MMM-yyyy").format(notificationDate);
+    final time = DateFormat("hh:mm a").format(notificationDate);
+
+    return Notification(
+      date: date,
+      time: time,
+      message: map['notification'],
+      status: map['notificationStatus'],
+    );
+  }
 }
 
 class NotificationScreen extends StatefulWidget {
+  final StreamController<CustomData> stream;
+
+  const NotificationScreen({
+    Key? key,
+    required this.stream,
+  }) : super(key: key);
+
   @override
   _NotificationScreenState createState() => _NotificationScreenState();
 }
@@ -27,39 +53,70 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   List<Notification> _notifications = [];
   bool fetched = false;
+  ValueNotifier<int> notificationCountNotifier =
+      ValueNotifier<int>(AppConfig.globalnotificationCount);
 
   @override
   void initState() {
     super.initState();
+    AppConfig.isNotificationScreenActive = true;
     _loadNotifications();
+
+    // TODO: Set up foreground message handler
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      var data = message.data;
+      if (data.isNotEmpty) {
+        //print(data);
+        if (data.containsKey('notificationType')) {
+          String dataValue = data['notificationType'];
+          if (dataValue == 'Notification' &&
+              AppConfig.isNotificationScreenActive) {
+            _loadNotifications();
+          }
+          // Process the data as needed
+          //print('Received data from PHP: $dataValue');
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    AppConfig.isNotificationScreenActive = false;
+    super.dispose();
   }
 
   Future<void> _loadNotifications() async {
-    final response = await http.post(
-      Uri.parse(
-          'https://www.cskm.com/schoolexpert/cskmemp/show_notifications.php'),
-      body: {
-        'userNo': AppConfig.globalUserNo,
-        'secretKey': AppConfig.secreetKey,
-      },
-    );
-    //print("response is ${response.body}");
-    if (response.statusCode == 200) {
-      // show response.body in console
-      fetched = true;
-      final data = json.decode(response.body);
+    // call DatabaseHelper class to get data from table
+    final dbHelper = DatabaseHelper();
+    // initialize database
 
-      _notifications = List<Notification>.from(
-          data['notifications'].map((notification) => Notification(
-                date: notification['date'],
-                time: notification['time'],
-                message: notification['message'],
-                status: notification['status'],
-              )));
-      setState(() {});
-    } else {
-      throw Exception('Failed to fetch notifications');
+    final _db = await dbHelper.initDatabase();
+    await dbHelper.createTableEmpNotifications(_db, 1);
+    //delete all data from table
+    //await dbHelper.deleteAllDataFromParentsNotifications();
+    // sync data from server
+    await dbHelper.syncDataToEmpNotifications();
+    final data = await dbHelper.getDataFromEmpNotifications();
+
+    // convert data to List<Notification>
+    _notifications = List.generate(data.length, (i) {
+      return Notification.fromMap(data[i]);
+    });
+    fetched = true;
+    // close the database connection
+    if (mounted) {
+      setState(() {
+        widget.stream.add(CustomData(count: 0, form: 'notification'));
+        notificationCountNotifier.value = 0;
+      });
     }
+
+    // call updateNotificationStatusToR() method to update notification status to R
+
+    await dbHelper.updateNotificationStatusToR();
+
+    dbHelper.close();
   }
 
   List<InlineSpan> parseText(String text) {

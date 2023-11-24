@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cskmemp/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:cskmemp/messaging/api_service.dart';
@@ -7,6 +6,9 @@ import 'package:cskmemp/messaging/model/student_model.dart';
 import 'package:cskmemp/messaging/model/message_model.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cskmemp/custom_data_stream.dart';
 
 String teacherUserNo = AppConfig.globalUserNo;
 StreamController<bool> streamController = StreamController<bool>.broadcast();
@@ -21,42 +23,172 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final ApiService apiService = ApiService();
   final TextEditingController _textEditingController = TextEditingController();
   final List<MessageModel> _messages = [];
   // Define a ScrollController
   final ScrollController _scrollController = ScrollController();
   bool sendMessageClicked = false;
+  bool isKeyboardVisible = false;
+  late StreamSubscription<bool> keyboardSubscription;
 
   @override
   void initState() {
     super.initState();
-    // Fetch initial messages when the chat screen is opened
+    AppConfig.isChatScreenActive = true;
     fetchMessages();
+
+    // Listen to keyboard visibility changes
+    keyboardSubscription =
+        KeyboardVisibilityController().onChange.listen((bool visible) {
+      setState(() {
+        //print("isKeyboardVisible= $visible");
+        isKeyboardVisible = visible;
+        if (visible) {
+          _scrollToLastMessage();
+          // Scroll up when the keyboard is opened
+          // _scrollController.animateTo(
+          //   _scrollController.position.maxScrollExtent,
+          //   duration: Duration(milliseconds: 300),
+          //   curve: Curves.easeOut,
+          // );
+        }
+      });
+    });
+
+    // TODO: Set up foreground message handler
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      var data = message.data;
+      if (data.isNotEmpty) {
+        //print(data);
+        if (data.containsKey('notificationType')) {
+          String dataValue = data['notificationType'];
+          if (dataValue == 'Message' && AppConfig.isChatScreenActive) {
+            //print("datavalue is Message");
+            //ApiService apiService = ApiService();
+            //await apiService.syncMessages();
+            // Set the _isBroadcastMessage to true
+            // AppConfig.isNewMessage = true;
+            // _messageNotifier.isMessageReceived = true;
+            getNewMessages();
+            //print("Message received completed");
+          }
+          // Process the data as needed
+          //print('Received data from PHP: $dataValue');
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
+    AppConfig.isChatScreenActive = false;
+    keyboardSubscription.cancel();
+
     if (!mounted) {
       widget.stream.close();
     }
+    // stop polling
+    //isChatScreenActive = false;
+    // Remove the listener when the widget is disposed
     super.dispose();
   }
+
+  void _scrollToLastMessage() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  Future<void> getNewMessages() async {
+    //print("getNewMessages called");
+    // sync data from server
+    await apiService.syncMessages();
+    final messagesNew = await apiService.getMessages(
+      widget.student.adm_no,
+      AppConfig.globalUserNo,
+    );
+
+    // Compare _messages with messagesNew and add new messages
+    final List<MessageModel> newMessages = messagesNew
+        .where((newMessage) => !_messages.any((existingMessage) =>
+            newMessage.dateTime == existingMessage.dateTime &&
+            newMessage.message == existingMessage.message))
+        .toList();
+    //print("newMessages= $newMessages");
+    // Add new messages to the stream
+    if (newMessages.isNotEmpty) {
+      //print("newMessages.isNotEmpty");
+      if (mounted) {
+        setState(() {
+          // Update the messages list with new messages
+          _messages.addAll(newMessages);
+        });
+      }
+    }
+  }
+
+  // void messagePolling() async {
+  //   // Delay execution for 30 seconds
+  //   await Future.delayed(Duration(seconds: 30));
+
+  //   while (isChatScreenActive) {
+  //     print("messagePolling called");
+  //     if (AppConfig.isNewMessage) {
+  //       final messagesNew =
+  //           await apiService.getMessages(adm_no, widget.teacher.userno);
+
+  //       // Compare _messages with messagesNew and add new messages
+  //       final List<MessageModel> newMessages = messagesNew
+  //           .where((newMessage) => !_messages.any((existingMessage) =>
+  //               newMessage.dateTime == existingMessage.dateTime &&
+  //               newMessage.message == existingMessage.message))
+  //           .toList();
+  //       //print("newMessages= $newMessages");
+  //       // Add new messages to the stream
+  //       if (newMessages.isNotEmpty) {
+  //         if (mounted) {
+  //           setState(() {
+  //             // Update the messages list with new messages
+  //             _messages.addAll(newMessages);
+  //           });
+  //         }
+  //       }
+  //       AppConfig.isNewMessage = false;
+  //       // Delay execution for the next 30 seconds
+  //     }
+  //     await Future.delayed(Duration(seconds: 1));
+  //   }
+  // }
 
   Future<void> fetchMessages() async {
     try {
       EasyLoading.show(status: 'Loading...');
-      final messages =
-          await apiService.getMessages(teacherUserNo, widget.student.adm_no);
+      final messages = await apiService.getMessages(
+        widget.student.adm_no,
+        AppConfig.globalUserNo,
+      );
       EasyLoading.dismiss();
       if (mounted) {
         setState(() {
           _messages.addAll(messages);
+          AppConfig.globalmessageCount =
+              AppConfig.globalmessageCount - widget.student.noOfUnreadMessages;
           widget.student.noOfUnreadMessages = 0;
-          //update the StudentListScreen widget
+
+          //update the TeachersListScreen widget
           widget.stream.add(true);
         });
+        // Change the status of message to read
+        await apiService.updateMessageStatus(
+          widget.student.adm_no,
+          AppConfig.globalUserNo,
+        );
+        // start polling and listening for new messages
+        //messagePolling();
       }
     } catch (e) {
       print(e.toString());
@@ -90,14 +222,7 @@ class _ChatScreenState extends State<ChatScreen> {
             teacherUserNo, widget.student.adm_no, message);
         _textEditingController.clear();
         // Update the messages list with the new message
-        setState(() {
-          _messages.add(MessageModel(
-            fromNo: teacherUserNo,
-            toNo: widget.student.adm_no,
-            message: message,
-            dateTime: DateTime.now(),
-          ));
-        });
+        getNewMessages();
       } catch (e) {
         if (this.mounted) {
           setState(() {
@@ -309,6 +434,8 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class StudentListScreen extends StatefulWidget {
+  final StreamController<CustomData> streamReadMessages;
+  StudentListScreen({required this.streamReadMessages});
   @override
   _StudentListScreenState createState() => _StudentListScreenState();
 }
@@ -361,6 +488,8 @@ class _StudentListScreenState extends State<StudentListScreen> {
   }
 
   void _openChatScreen(StudentModel student) {
+    widget.streamReadMessages
+        .add(CustomData(count: student.noOfUnreadMessages, form: 'message'));
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -461,7 +590,8 @@ class _StudentListScreenState extends State<StudentListScreen> {
                             : null,
                         onTap: () => student.isAppInstalled
                             ? _openChatScreen(student)
-                            : _openChatScreen(student),
+                            : EasyLoading.showToast(
+                                'App not installed by parents of ${student.st_name}'),
                       );
                     },
                   );

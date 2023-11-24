@@ -1,5 +1,12 @@
+import 'dart:async';
 import 'package:cskmemp/app_config.dart';
 import 'package:flutter/material.dart';
+import 'package:cskmemp/custom_data_stream.dart';
+import 'package:cskmemp/messaging/message_tabbed_screen.dart';
+import 'package:cskmemp/notifications_sreen.dart';
+
+StreamController<CustomData> streamController =
+    StreamController<CustomData>.broadcast();
 
 class HomeScreenButtons extends StatefulWidget {
   const HomeScreenButtons({super.key});
@@ -10,7 +17,27 @@ class HomeScreenButtons extends StatefulWidget {
 
 class _HomeScreenButtonsState extends State<HomeScreenButtons> {
   bool classTeacher = false;
-  //code to store classTeacher in SharedPreferences to the global variable classTeacher
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    streamController.stream.listen((customData) {
+      if (mounted) {
+        // print('customData.form: ${customData.form}');
+        // print('customData.count: ${customData.count}');
+        setState(() {
+          if (customData.form == 'message') {
+            AppConfig.globalmessageCount =
+                AppConfig.globalmessageCount - customData.count;
+          } else if (customData.form == 'notification') {
+            AppConfig.globalnotificationCount = customData.count;
+          }
+        });
+      }
+    });
+  }
 
   //code to fetch classTeacher from SharedPreferences
   void openTasks(context) async {
@@ -24,7 +51,14 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
   }
 
   void openMessages(context) {
-    Navigator.pushNamed(context, '/messagetabbedscreen');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MessageTabbedScreen(
+          stream: streamController,
+        ),
+      ),
+    );
   }
 
   void openMarksEntry(context) {
@@ -63,6 +97,10 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
     Navigator.pushNamed(context, '/studentdetails');
   }
 
+  void openParentsAppInstallStatus(context) {
+    Navigator.pushNamed(context, '/parentsappinstallstatus');
+  }
+
   void openChangeSection(context) {
     Navigator.pushNamed(context, '/changesec');
   }
@@ -76,13 +114,28 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
   }
 
   void openNotifications(context) {
-    Navigator.pushNamed(context, '/notifications');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NotificationScreen(
+          stream: streamController,
+        ),
+      ),
+    );
+  }
+
+  void openSendNotifications(context) {
+    Navigator.pushNamed(context, '/notificationtabbedscreen');
+  }
+
+  void openPhotoGallery(context) {
+    Navigator.pushNamed(context, '/photogallery');
   }
 
   @override
   Widget build(BuildContext context) {
     return GridView.count(
-      crossAxisCount: 2,
+      crossAxisCount: 3,
       children: [
         ButtonWidget(
           buttonText: 'Smart Task Management',
@@ -93,7 +146,18 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
           buttonText: 'Notifications',
           icon: Icons.notifications,
           onTap: openNotifications,
-          count: AppConfig.globalNotificationCount,
+          count: AppConfig.globalnotificationCount,
+        ),
+        ButtonWidget(
+          buttonText: 'Notifications - Parents',
+          icon: Icons.notifications_active,
+          onTap: openSendNotifications,
+        ),
+        ButtonWidget(
+          buttonText: 'Messaging - Parents',
+          icon: Icons.messenger,
+          onTap: openMessages,
+          count: AppConfig.globalmessageCount,
         ),
         if (AppConfig.globalSelfSubjectMap == true)
           ButtonWidget(
@@ -119,23 +183,22 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
             icon: Icons.person,
             onTap: openStudentDetails,
           ),
+        ButtonWidget(
+          buttonText: 'Parents App Install Status',
+          icon: Icons.mobile_friendly,
+          onTap: openParentsAppInstallStatus,
+        ),
 
-        if (AppConfig.globalClassTeacher == true)
-          ButtonWidget(
-            buttonText: 'Class Teacher Smart Messaging',
-            icon: Icons.messenger,
-            onTap: openMessages,
-          ),
         if (AppConfig.globalIsSubjectTeacher == true)
           ButtonWidget(
             buttonText: 'Marks Entry (Exam Wise)',
-            icon: Icons.edit,
+            icon: Icons.edit_note,
             onTap: openMarksEntry,
           ),
         if (AppConfig.globalIsSubjectTeacher == true)
           ButtonWidget(
             buttonText: 'Marks Entry (Term Wise)',
-            icon: Icons.edit,
+            icon: Icons.edit_document,
             onTap: openMarksEntryTermWise,
           ),
         if (AppConfig.globalClassTeacher == true)
@@ -168,17 +231,16 @@ class _HomeScreenButtonsState extends State<HomeScreenButtons> {
             icon: Icons.swap_horiz,
             onTap: openChangeSection,
           ),
-        if (AppConfig.globalIsOffSupdt == true)
-          ButtonWidget(
-            buttonText: 'Office Smart Messaging',
-            icon: Icons.supervisor_account,
-            onTap: openMessages,
-          ),
         // show schoolexpert page to all
         ButtonWidget(
           buttonText: 'School Expert',
           icon: Icons.school,
           onTap: openSchoolExpert,
+        ),
+        ButtonWidget(
+          buttonText: 'Photo Gallery',
+          icon: Icons.photo_library,
+          onTap: openPhotoGallery,
         ),
       ],
     );
@@ -201,24 +263,47 @@ class ButtonWidget extends StatelessWidget {
   @override
   Widget build(context) {
     return Padding(
-      padding: const EdgeInsets.all(10.0),
+      padding: const EdgeInsets.all(4.0),
       child: SizedBox(
-        height: 40.0,
+        //height: 60.0,
         child: DecoratedBox(
-          decoration: AppConfig.boxDecoration(),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.purple,
+                Colors.blue, // Dodger Blue
+              ],
+              stops: [0.0, 1.0],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              tileMode: TileMode.clamp,
+            ),
+            borderRadius: BorderRadius.circular(10.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          //decoration: AppConfig.boxDecoration(),
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(0, 0, 0, 0)),
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              padding: EdgeInsets.zero,
+            ),
+            onPressed: () => onTap(context),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 ShaderMask(
                   shaderCallback: (Rect bounds) {
                     return LinearGradient(
-                      colors: [Colors.grey[400]!, Colors.amber],
-                      stops: [0.0, 1.0],
+                      colors: [Colors.white, Colors.amber, Colors.white70],
+                      stops: [0.0, 0.5, 1.0],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       tileMode: TileMode.clamp,
@@ -228,7 +313,7 @@ class ButtonWidget extends StatelessWidget {
                     children: [
                       Icon(
                         icon,
-                        size: 40,
+                        size: 45,
                         //color: Color.fromARGB(255, 103, 98, 98),
                       ),
                       if (count > 0)
@@ -250,34 +335,32 @@ class ButtonWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: 8.0),
-                Text(
-                  buttonText,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    foreground: Paint()
-                      ..shader = LinearGradient(
-                        colors: [
-                          Color.fromARGB(255, 249, 249, 249),
-                          Colors.amber
-                        ],
-                        stops: [0.0, 1.0],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        tileMode: TileMode.clamp,
-                      ).createShader(Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
+                SizedBox(height: 5.0),
+                Flexible(
+                  child: Text(
+                    buttonText,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      foreground: Paint()
+                        ..shader = LinearGradient(
+                          colors: [
+                            Colors.white,
+                            Colors.yellow,
+                          ],
+                          stops: [0.0, 1.0],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          tileMode: TileMode.clamp,
+                        ).createShader(Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.clip,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),
-            // Text(
-            //   buttonText,
-            //   style: AppConfig.normalWhite15(),
-            // ),
-            //icon: Icon(icon, size: 40),
-            onPressed: () => onTap(context),
           ),
         ),
       ),

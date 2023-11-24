@@ -71,7 +71,7 @@ class _BroadcastFormState extends State<BroadcastForm> {
         // Send data to the server
         final response = await http.post(
           Uri.parse(
-              'https://www.cskm.com/schoolexpert/cskmparents/send_broadcast.php'),
+              'https://www.cskm.com/schoolexpert/cskmparents/send_broadcast_notification.php'),
           body: postData,
         );
 
@@ -88,10 +88,10 @@ class _BroadcastFormState extends State<BroadcastForm> {
               actions: [
                 TextButton(
                   onPressed: () {
+                    // clear the form
+                    _formKey.currentState!.reset();
+                    // Close the dialog
                     Navigator.of(context).pop();
-                    //navigate to /messagetabbedscreen and remove this screen from the stack
-                    Navigator.of(context)
-                        .pushReplacementNamed('/messagetabbedscreen');
                   },
                   child: Text('OK'),
                 ),

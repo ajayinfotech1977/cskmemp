@@ -17,7 +17,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
 #+number is version code and 1.1.0 as version name
-version: 1.6.2+12
+version: 1.8.0+15
 environment:
   sdk: '>=3.0.2 <4.0.0'
 
@@ -37,8 +37,8 @@ dependencies:
   cupertino_icons: ^1.0.6
   http: ^1.1.0
   shared_preferences: ^2.2.1
-  firebase_core: ^2.17.0
-  firebase_messaging: ^14.6.9
+  firebase_core: ^2.22.0
+  firebase_messaging: ^14.7.4
   flutter_local_notifications: ^16.1.0
   encrypt: ^5.0.3
   flutter_easyloading: ^3.0.5
@@ -47,12 +47,16 @@ dependencies:
   flutter_spinkit: ^5.2.0
   sqflite: ^2.2.8+4
   intl: ^0.18.1
-  fluttertoast: ^8.2.2
-  webview_flutter: ^4.4.1
-  connectivity_plus: ^4.0.2
-  url_launcher: ^6.1.14
+  fluttertoast: ^8.2.4
+  webview_flutter: ^4.4.2
+  connectivity_plus: ^5.0.1
+  url_launcher: ^6.2.1
   file_picker: ^5.5.0
   image_picker: ^1.0.4
+  syncfusion_flutter_pdfviewer: ^23.1.44
+  path_provider: ^2.1.1
+  upgrader: ^8.2.0
+  flutter_keyboard_visibility: ^5.4.1
   
 
 dev_dependencies:

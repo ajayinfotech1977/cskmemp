@@ -18,14 +18,12 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:cskmemp/marks_entry/exam_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:io';
-import 'package:http/http.dart' as http;
+import 'package:upgrader/upgrader.dart';
 
 // TODO: Add stream controller
 import 'package:rxdart/rxdart.dart';
-
-import 'messaging/chat_screen.dart';
-import 'messaging/message_tabbed_screen.dart';
-import 'notifications_sreen.dart';
+import 'notification_parents/notification_tabbed_screen.dart';
+import 'package:cskmemp/photogallery_screen.dart';
 
 // used to pass messages from event handler to the UI
 final _messageStreamController = BehaviorSubject<RemoteMessage>();
@@ -101,7 +99,18 @@ void initializeFirebase() async {
     //   }
     // }
 
-    showNotification(title, msg);
+    var data = message.data;
+    String dataValue = '';
+    if (data.isNotEmpty) {
+      //print(data);
+      if (data.containsKey('notificationType')) {
+        dataValue = data['notificationType'];
+      }
+    }
+
+    if (!(AppConfig.isChatScreenActive && dataValue == 'Message')) {
+      showNotification(title, msg);
+    }
     // if (kDebugMode) {
     //   print('Handling a foreground message: ${message.messageId}');
     //   print('Message data: ${message.data}');
@@ -229,7 +238,7 @@ class _MyAppState extends State<MyApp> {
   // }
   /*************Auto Update Code Completed *****************************/
 
-  Future<bool> checkLoginState() async {
+  Future<String> checkLoginState() async {
     if (Platform.isAndroid) {
       //print('Android');
       //print('Checking for update');
@@ -244,6 +253,7 @@ class _MyAppState extends State<MyApp> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (prefs.containsKey('userid')) {
+      //print("get values from  shared preferences...");
       var userid = prefs.getString('userid');
       var password1 = prefs.getString('password1');
       var appConfig = AppConfig();
@@ -251,17 +261,7 @@ class _MyAppState extends State<MyApp> {
           appConfig.checkLogin(userid: userid, password1: password1);
       return logginStateValue;
     } else {
-      return false;
-    }
-  }
-
-  Future<bool> checkWebsiteStatus() async {
-    final response = await http
-        .get(Uri.parse('https://www.cskm.com/schoolexpert/cskmemp/ping.php'));
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      return false;
+      return "invalid";
     }
   }
 
@@ -281,29 +281,23 @@ class _MyAppState extends State<MyApp> {
           final hasConnection =
               snapshot.hasData && snapshot.data != ConnectivityResult.none;
           if (hasConnection) {
-            return FutureBuilder(
-              future: checkWebsiteStatus(),
+            return StreamBuilder(
+              stream: Stream.fromFuture(checkLoginState()),
+              initialData: checkLoginState,
               builder: (ctx, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return SplashScreenWidget();
                 }
-                if (snapshot.data == true) {
-                  return StreamBuilder(
-                    stream: Stream.fromFuture(checkLoginState()),
-                    initialData: checkLoginState,
-                    builder: (ctx, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return SplashScreenWidget();
-                      }
-                      if (snapshot.data == true) {
-                        return const HomeScreen();
-                      } else {
-                        return const LoginScreen();
-                      }
-                    },
-                  );
-                } else {
+                if (snapshot.data == "valid") {
+                  return const HomeScreen();
+                } else if (snapshot.data == "invalid") {
+                  return const LoginScreen();
+                } else if (snapshot.data == "serverNotReachable") {
                   return NoWebsiteWidget();
+                } else if (snapshot.data == "serverDown") {
+                  return NoWebsiteWidget();
+                } else {
+                  return const LoginScreen();
                 }
               },
             );
@@ -319,8 +313,6 @@ class _MyAppState extends State<MyApp> {
         '/completedtasks': (context) => const CompletedTasks(),
         '/othersPendingTasks': (context) => const OthersPendingTasksScreen(),
         '/tasktabbedscreen': (context) => TaskTabbedScreen(),
-        '/chatscreen': (context) => StudentListScreen(),
-        '/messagetabbedscreen': (context) => MessageTabbedScreen(),
         '/marksentryscreen': (context) => MarksEntryScreen(),
         '/marksentryscreentermwise': (context) => MarksEntryScreenTermWise(),
         '/gradesentry': (context) => GradesEntry(),
@@ -333,7 +325,9 @@ class _MyAppState extends State<MyApp> {
         '/changesec': (context) => ChangeSection(),
         '/markattendance': (context) => MarkAttendance(),
         '/schoolexpert': (context) => ViewSchoolexpert(),
-        '/notifications': (context) => NotificationScreen(),
+        '/parentsappinstallstatus': (context) => ParentsAppInstallStatus(),
+        '/notificationtabbedscreen': (context) => NotificationTabbedScreen(),
+        '/photogallery': (context) => PhotoGalleryPage(),
       },
       builder: EasyLoading.init(),
     );
@@ -365,42 +359,56 @@ class SplashScreenWidget extends StatelessWidget {
   @override
   Widget build(context) {
     return Scaffold(
-      body: Container(
-        decoration: AppConfig.boxDecoration(),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/images/cskm-logo.png',
-                width: 200,
+      body: Platform.isIOS
+          ? UpgradeAlert(
+              upgrader: Upgrader(dialogStyle: UpgradeDialogStyle.cupertino),
+              child: SplashScreenContainerWidget(),
+            )
+          : SplashScreenContainerWidget(),
+    );
+  }
+}
+
+class SplashScreenContainerWidget extends StatelessWidget {
+  const SplashScreenContainerWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: AppConfig.boxDecoration(),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/cskm-logo.png',
+              width: 200,
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            Text(
+              "CSKM Public School",
+              style: AppConfig.boldWhite30(),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            const Text(
+              "Employee Login",
+              style: TextStyle(
+                fontSize: 30,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(
-                height: 30,
-              ),
-              Text(
-                "CSKM Public School",
-                style: AppConfig.boldWhite30(),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              const Text(
-                "Employee Login",
-                style: TextStyle(
-                  fontSize: 30,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SpinKitFadingCircle(
-                color: const Color.fromARGB(255, 250, 251, 253),
-                size: 50.0,
-              ),
-              SizedBox(height: 16.0),
-              Text('Loading...'),
-            ],
-          ),
+            ),
+            SpinKitFadingCircle(
+              color: const Color.fromARGB(255, 250, 251, 253),
+              size: 50.0,
+            ),
+            SizedBox(height: 16.0),
+            Text('Loading...'),
+          ],
         ),
       ),
     );
@@ -504,7 +512,7 @@ class NoWebsiteWidget extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  'Webserver is down! Please retry after a while.',
+                  'Server not reachable!\n1. Check your internet connection.\n2. Server might be unreachable.\n3. After rectifying the issue, please restart the app.',
                   style: AppConfig.normaYellow20(),
                   textAlign: TextAlign.center,
                 ),

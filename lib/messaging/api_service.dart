@@ -3,9 +3,26 @@ import 'package:cskmemp/messaging/model/message_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:cskmemp/messaging/model/student_model.dart';
 import 'package:cskmemp/app_config.dart';
+import 'package:cskmemp/database/database_helper.dart';
 
 class ApiService {
   static const String baseUrl = 'https://www.cskm.com/schoolexpert/cskmemp';
+
+  Future<void> syncMessages() async {
+    try {
+      // call DatabaseHelper class to get data from table
+      final dbHelper = DatabaseHelper();
+      final _db = await dbHelper.initDatabase();
+      await dbHelper.createTableMessages(_db, 1);
+      // sync data from server
+      await dbHelper.syncDataToMessages();
+
+      dbHelper.close();
+      print("syncMessages completed");
+    } catch (Exception) {
+      print("syncMessages Exception: $Exception");
+    }
+  }
 
   Future<List<StudentModel>> getStudents(String userNo) async {
     final response = await http.post(
@@ -15,7 +32,7 @@ class ApiService {
         'secretKey': AppConfig.secreetKey,
       },
     );
-
+    syncMessages();
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
       //print("response= $jsonData");
@@ -44,7 +61,8 @@ class ApiService {
 
   Future<void> sendMessage(String fromNo, String toNo, String message) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/send_message.php'),
+      Uri.parse(
+          'https://www.cskm.com/schoolexpert/cskmparents/send_message_to_parents.php'),
       body: {
         'secretKey': AppConfig.secreetKey,
         'userNo': fromNo.toString(),
@@ -60,62 +78,32 @@ class ApiService {
   }
 
   Future<List<MessageModel>> getMessages(String fromNo, String toNo) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/get_messages.php'),
-      body: {
-        'secretKey': AppConfig.secreetKey,
-        'userNo': fromNo.toString(),
-        'adm_no': toNo.toString(),
-      },
-    );
+    final dbHelper = DatabaseHelper();
+    // initialize database
+    await dbHelper.initDatabase();
+    // fetch data from database
+    final data = await dbHelper.getDataFromMessages(fromNo, toNo);
+    // print("fromNo= $fromNo, toNo= $toNo");
+    // print(data);
+    // convert data to List<MessageModel>
+    List<MessageModel> messages = List.generate(data.length, (i) {
+      return MessageModel.fromMap(data[i]);
+    });
+    // close database connection
+    dbHelper.close();
 
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      //print("response= $jsonData");
-      List<MessageModel> messages = [];
+    //print(messages);
+    return messages;
+  }
 
-      if (jsonData.containsKey('messages')) {
-        List<dynamic> messageList = jsonData['messages'];
-
-        for (var messageData in messageList) {
-          if (messageData.containsKey('msgType')) {
-            String msgType = messageData['msgType'];
-            if (msgType == 'S') {
-              String fromNo = messageData['userno'].toString();
-              String toNo = messageData['adm_no'].toString();
-              String message = messageData['msg'];
-              var dateTimeStr = messageData['msgDate']['date'];
-              DateTime dateTime = DateTime.parse(dateTimeStr);
-
-              MessageModel messageModel = MessageModel(
-                  fromNo: fromNo,
-                  toNo: toNo,
-                  message: message,
-                  dateTime: dateTime);
-              messages.add(messageModel);
-            } else if (msgType == 'P') {
-              String fromNo = messageData['adm_no'].toString();
-              String toNo = messageData['userno'].toString();
-              String message = messageData['msg'];
-              var dateTimeStr = messageData['msgDate']['date'];
-              DateTime dateTime = DateTime.parse(dateTimeStr);
-
-              MessageModel messageModel = MessageModel(
-                fromNo: fromNo,
-                toNo: toNo,
-                message: message,
-                dateTime: dateTime,
-              );
-
-              messages.add(messageModel);
-            }
-          }
-        }
-      }
-      //print(messages);
-      return messages;
-    } else {
-      throw Exception('Failed to load messages');
-    }
+  // function to update the status of message to read for the userno and adm_no
+  Future<void> updateMessageStatus(String adm_no, String userno) async {
+    final dbHelper = DatabaseHelper();
+    // initialize database
+    await dbHelper.initDatabase();
+    // update the status of message to read for the userno and adm_no
+    await dbHelper.updateMessageStatusToR(adm_no, userno);
+    // close database connection
+    dbHelper.close();
   }
 }
