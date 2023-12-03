@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cskmemp/database/database_helper.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cskmemp/custom_data_stream.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class Notification {
   final String date;
@@ -69,9 +70,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
         //print(data);
         if (data.containsKey('notificationType')) {
           String dataValue = data['notificationType'];
-          if (dataValue == 'Notification' &&
-              AppConfig.isNotificationScreenActive) {
+          if (dataValue == 'Notification') {
             _loadNotifications();
+            final player = AudioPlayer();
+            //play sound stored in assets/sound/messagerecieved.mp3
+            await player.play(AssetSource('sound/messagerecieved.mp3'),
+                volume: 1);
           }
           // Process the data as needed
           //print('Received data from PHP: $dataValue');

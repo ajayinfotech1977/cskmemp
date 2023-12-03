@@ -100,17 +100,22 @@ void initializeFirebase() async {
     // }
 
     var data = message.data;
-    String dataValue = '';
     if (data.isNotEmpty) {
       //print(data);
       if (data.containsKey('notificationType')) {
-        dataValue = data['notificationType'];
+        String dataValue = data['notificationType'];
+        if (dataValue == 'Notification' &&
+            AppConfig.isNotificationScreenActive) {
+          AppConfig.isNewNotification = true;
+        } else if (dataValue == 'Message' && AppConfig.isChatScreenActive) {
+          AppConfig.isNewMessage = true;
+        } else {
+          showNotification(title, msg);
+        }
       }
     }
 
-    if (!(AppConfig.isChatScreenActive && dataValue == 'Message')) {
-      showNotification(title, msg);
-    }
+    
     // if (kDebugMode) {
     //   print('Handling a foreground message: ${message.messageId}');
     //   print('Message data: ${message.data}');

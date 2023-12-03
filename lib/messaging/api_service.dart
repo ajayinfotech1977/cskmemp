@@ -28,7 +28,7 @@ class ApiService {
     final response = await http.post(
       Uri.parse('$baseUrl/get_students.php'),
       body: {
-        'userNo': userNo,
+        'userNo': AppConfig.globalUserNo,
         'secretKey': AppConfig.secreetKey,
       },
     );
@@ -48,9 +48,9 @@ class ApiService {
         if (result != 0) {
           return result;
         }
-
         // If noOfUnreadMessages are equal, sort by st_name in ascending order
-        return a.st_name.compareTo(b.st_name);
+        // return a.st_name.compareTo(b.st_name);
+        return result;
       });
 
       return studentList;

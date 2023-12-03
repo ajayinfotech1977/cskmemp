@@ -10,7 +10,7 @@ class ApiService {
 
   Future<List<StudentModel>> getStudents(String userNo) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/get_students.php'),
+      Uri.parse('https://www.cskm.com/schoolexpert/cskmemp/get_students.php'),
       body: {
         'userNo': userNo,
         'secretKey': AppConfig.secreetKey,

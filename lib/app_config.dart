@@ -30,6 +30,7 @@ class AppConfig {
   static bool isNewMessage = false;
   static bool isChatScreenActive = false;
   static bool isNotificationScreenActive = false;
+  static bool isNewNotification = false;
 
   static BoxDecoration boxDecoration() {
     return const BoxDecoration(

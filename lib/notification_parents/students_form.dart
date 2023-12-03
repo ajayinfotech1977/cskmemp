@@ -5,7 +5,6 @@ import 'package:cskmemp/notification_parents/api_service.dart';
 import 'package:cskmemp/notification_parents/model/student_model.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
-String teacherUserNo = AppConfig.globalUserNo;
 bool _isFetching = true;
 
 class NotificationSelectedParents extends StatefulWidget {
@@ -31,7 +30,7 @@ class _NotificationSelectedParentsState
     _isFetching = true;
     super.initState();
 
-    _studentsFuture = apiService.getStudents(teacherUserNo);
+    _studentsFuture = apiService.getStudents(AppConfig.globalUserNo);
     _studentsFuture.then((studentsData) {
       setState(() {
         students = studentsData;
@@ -146,7 +145,7 @@ class _NotificationSelectedParentsState
     EasyLoading.show(status: 'Sending...');
     apiService
         .sendNotifications(
-            selectedStudents, messageController.text, teacherUserNo)
+            selectedStudents, messageController.text, AppConfig.globalUserNo)
         .then((value) {
       EasyLoading.dismiss();
       isSending = false;

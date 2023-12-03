@@ -9,8 +9,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cskmemp/custom_data_stream.dart';
+import 'package:audioplayers/audioplayers.dart';
 
-String teacherUserNo = AppConfig.globalUserNo;
 StreamController<bool> streamController = StreamController<bool>.broadcast();
 
 class ChatScreen extends StatefulWidget {
@@ -64,7 +64,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         //print(data);
         if (data.containsKey('notificationType')) {
           String dataValue = data['notificationType'];
-          if (dataValue == 'Message' && AppConfig.isChatScreenActive) {
+          if (dataValue == 'Message') {
             //print("datavalue is Message");
             //ApiService apiService = ApiService();
             //await apiService.syncMessages();
@@ -72,6 +72,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             // AppConfig.isNewMessage = true;
             // _messageNotifier.isMessageReceived = true;
             getNewMessages();
+            final player = AudioPlayer();
+            //play sound stored in assets/sound/messagerecieved.mp3
+            await player.play(AssetSource('sound/messagerecieved.mp3'),
+                volume: 1);
             //print("Message received completed");
           }
           // Process the data as needed
@@ -219,7 +223,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (message.isNotEmpty) {
       try {
         await apiService.sendMessage(
-            teacherUserNo, widget.student.adm_no, message);
+            AppConfig.globalUserNo, widget.student.adm_no, message);
         _textEditingController.clear();
         // Update the messages list with the new message
         getNewMessages();
@@ -318,9 +322,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             SizedBox(height: 8.0),
                           ],
                           Row(
-                            mainAxisAlignment: message.fromNo == teacherUserNo
-                                ? MainAxisAlignment.end
-                                : MainAxisAlignment.start,
+                            mainAxisAlignment:
+                                message.fromNo == AppConfig.globalUserNo
+                                    ? MainAxisAlignment.end
+                                    : MainAxisAlignment.start,
                             children: [
                               Container(
                                 constraints: BoxConstraints(
@@ -330,18 +335,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 12.0, vertical: 8.0),
                                 decoration: BoxDecoration(
-                                  color: message.fromNo == teacherUserNo
-                                      ? Colors.blue
-                                      : Colors.grey[300],
+                                  color:
+                                      message.fromNo == AppConfig.globalUserNo
+                                          ? Colors.blue
+                                          : Colors.grey[300],
                                   borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(12.0),
                                     topRight: Radius.circular(12.0),
                                     bottomLeft: Radius.circular(
-                                        message.fromNo == teacherUserNo
+                                        message.fromNo == AppConfig.globalUserNo
                                             ? 12.0
                                             : 0.0),
                                     bottomRight: Radius.circular(
-                                        message.fromNo == teacherUserNo
+                                        message.fromNo == AppConfig.globalUserNo
                                             ? 0.0
                                             : 12.0),
                                   ),
@@ -354,7 +360,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                       softWrap: true,
                                       maxLines: null,
                                       style: TextStyle(
-                                        color: message.fromNo == teacherUserNo
+                                        color: message.fromNo ==
+                                                AppConfig.globalUserNo
                                             ? Colors.white
                                             : Colors.black,
                                       ),
@@ -365,7 +372,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                           .format(message.dateTime),
                                       style: TextStyle(
                                         fontSize: 12.0,
-                                        color: message.fromNo == teacherUserNo
+                                        color: message.fromNo ==
+                                                AppConfig.globalUserNo
                                             ? Colors.white.withOpacity(0.7)
                                             : Colors.black.withOpacity(0.7),
                                       ),
@@ -451,7 +459,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
   void initState() {
     super.initState();
 
-    _studentsFuture = apiService.getStudents(teacherUserNo);
+    _studentsFuture = apiService.getStudents(AppConfig.globalUserNo);
     //updateSearchResults('');
 
     streamController.stream.listen((shouldUpdate) {
@@ -459,7 +467,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
         if (shouldUpdate) {
           setState(() {
             // Update the necessary data or re-fetch the updated data
-            _studentsFuture = apiService.getStudents(teacherUserNo);
+            _studentsFuture = apiService.getStudents(AppConfig.globalUserNo);
           });
         }
       }
