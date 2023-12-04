@@ -26,12 +26,13 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final ApiService apiService = ApiService();
   final TextEditingController _textEditingController = TextEditingController();
-  final List<MessageModel> _messages = [];
+  List<MessageModel> _messages = [];
   // Define a ScrollController
   final ScrollController _scrollController = ScrollController();
   bool sendMessageClicked = false;
   bool isKeyboardVisible = false;
   late StreamSubscription<bool> keyboardSubscription;
+  final player = new AudioPlayer();
 
   @override
   void initState() {
@@ -72,10 +73,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             // AppConfig.isNewMessage = true;
             // _messageNotifier.isMessageReceived = true;
             getNewMessages();
-            final player = AudioPlayer();
+
             //play sound stored in assets/sound/messagerecieved.mp3
             await player.play(AssetSource('sound/messagerecieved.mp3'),
                 volume: 1);
+            //_scrollToLastMessage();
             //print("Message received completed");
           }
           // Process the data as needed
@@ -89,6 +91,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void dispose() {
     AppConfig.isChatScreenActive = false;
     keyboardSubscription.cancel();
+    player.dispose();
 
     if (!mounted) {
       widget.stream.close();
@@ -100,39 +103,24 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   void _scrollToLastMessage() {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+    try {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
   Future<void> getNewMessages() async {
     //print("getNewMessages called");
     // sync data from server
     await apiService.syncMessages();
-    final messagesNew = await apiService.getMessages(
-      widget.student.adm_no,
-      AppConfig.globalUserNo,
-    );
-
-    // Compare _messages with messagesNew and add new messages
-    final List<MessageModel> newMessages = messagesNew
-        .where((newMessage) => !_messages.any((existingMessage) =>
-            newMessage.dateTime == existingMessage.dateTime &&
-            newMessage.message == existingMessage.message))
-        .toList();
-    //print("newMessages= $newMessages");
-    // Add new messages to the stream
-    if (newMessages.isNotEmpty) {
-      //print("newMessages.isNotEmpty");
-      if (mounted) {
-        setState(() {
-          // Update the messages list with new messages
-          _messages.addAll(newMessages);
-        });
-      }
-    }
+    fetchMessages();
   }
 
   // void messagePolling() async {
@@ -170,15 +158,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Future<void> fetchMessages() async {
     try {
-      EasyLoading.show(status: 'Loading...');
       final messages = await apiService.getMessages(
         widget.student.adm_no,
         AppConfig.globalUserNo,
       );
-      EasyLoading.dismiss();
       if (mounted) {
         setState(() {
-          _messages.addAll(messages);
+          _messages = messages;
           AppConfig.globalmessageCount =
               AppConfig.globalmessageCount - widget.student.noOfUnreadMessages;
           widget.student.noOfUnreadMessages = 0;
@@ -195,7 +181,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         //messagePolling();
       }
     } catch (e) {
-      print(e.toString());
+      //print(e.toString());
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -259,7 +245,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     // After the ListView.builder is built, scroll to the bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     });
 
     return Scaffold(

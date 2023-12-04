@@ -120,7 +120,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     await dbHelper.updateNotificationStatusToR();
 
-    dbHelper.close();
+    //dbHelper.close();
   }
 
   List<InlineSpan> parseText(String text) {

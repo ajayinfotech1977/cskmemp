@@ -17,8 +17,8 @@ class ApiService {
       // sync data from server
       await dbHelper.syncDataToMessages();
 
-      dbHelper.close();
-      print("syncMessages completed");
+      //dbHelper.close();
+      //print("syncMessages completed");
     } catch (Exception) {
       print("syncMessages Exception: $Exception");
     }
@@ -90,7 +90,7 @@ class ApiService {
       return MessageModel.fromMap(data[i]);
     });
     // close database connection
-    dbHelper.close();
+    //dbHelper.close();
 
     //print(messages);
     return messages;
@@ -104,6 +104,6 @@ class ApiService {
     // update the status of message to read for the userno and adm_no
     await dbHelper.updateMessageStatusToR(adm_no, userno);
     // close database connection
-    dbHelper.close();
+    //dbHelper.close();
   }
 }
