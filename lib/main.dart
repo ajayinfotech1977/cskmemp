@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cskmemp/messaging/api_service.dart';
 import 'package:cskmemp/tasks/completed_tasks.dart';
 import 'package:cskmemp/tasks/others_pending_tasks.dart';
 import 'package:cskmemp/tasks/task_tabbed_screen.dart';
@@ -19,6 +20,7 @@ import 'package:cskmemp/marks_entry/exam_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:io';
 import 'package:upgrader/upgrader.dart';
+import 'package:restart_app/restart_app.dart';
 
 // TODO: Add stream controller
 import 'package:rxdart/rxdart.dart';
@@ -111,11 +113,13 @@ void initializeFirebase() async {
           AppConfig.isNewMessage = true;
         } else {
           showNotification(title, msg);
+          if (dataValue == 'Message') {
+            ApiService().syncMessages();
+          }
         }
       }
     }
 
-    
     // if (kDebugMode) {
     //   print('Handling a foreground message: ${message.messageId}');
     //   print('Message data: ${message.data}');
@@ -227,6 +231,11 @@ class _MyAppState extends State<MyApp> {
           //showSnack(e.toString());
           return AppUpdateResult.inAppUpdateFailed;
         });
+        try {
+          Restart.restartApp();
+        } catch (e) {
+          //print(e);
+        }
       }
       //});
     }).catchError((e) {
@@ -278,6 +287,9 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        useMaterial3: false,
+      ),
       title: 'CSKM EMP',
       home: StreamBuilder(
         stream: Connectivity().onConnectivityChanged,
@@ -296,6 +308,7 @@ class _MyAppState extends State<MyApp> {
                 if (snapshot.data == "valid") {
                   return const HomeScreen();
                 } else if (snapshot.data == "invalid") {
+                  AppConfig.logout();
                   return const LoginScreen();
                 } else if (snapshot.data == "serverNotReachable") {
                   return NoWebsiteWidget();

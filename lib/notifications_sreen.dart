@@ -124,8 +124,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   List<InlineSpan> parseText(String text) {
-    final RegExp urlRegExp =
-        RegExp(r"(?:(?:https?|ftp):\/\/)[\w/\-?=%.]+\.[\w/\-?=%.]+");
+    final RegExp urlRegExp = RegExp(r"(https?://[\w/\-?=%.&]+)(?:\s|$)");
     final List<InlineSpan> spans = [];
     final List<String> substrings = text.split(urlRegExp);
     final Iterable<Match> matches = urlRegExp.allMatches(text);

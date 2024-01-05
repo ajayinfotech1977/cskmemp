@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:cskmemp/database/database_helper.dart';
 
 class AppConfig {
   /*below is a secretkey encrypted key which will go with each post 
@@ -92,12 +93,16 @@ class AppConfig {
   }) async {
     //print("sending post request to server");
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? deviceToken = await prefs.getString('deviceToken');
       var response = await http.post(
         Uri.parse('https://www.cskm.com/schoolexpert/cskmemp/checkLogin.php'),
         body: {
           'username': userid,
           'password': password1,
           'encrypted': 'Yes',
+          'deviceToken': deviceToken,
+          'loginType': 'auto',
         },
       );
       //print("response = ${response.body}");
@@ -141,9 +146,11 @@ class AppConfig {
           await AppConfig.setGlobalVariables();
           // Navigate to the home screen
           return Future.value("valid");
+        } else if (status == 'invalid') {
+          // Login failed
+          return Future.value("invalid");
         } else {
           // The login was unsuccessful
-          logout();
           return Future.value("invalid");
         }
       }
@@ -206,24 +213,16 @@ class AppConfig {
       },
     );
 
-    await prefs.remove('userid');
-    await prefs.remove('password1');
-    await prefs.remove('userNo');
-    await prefs.remove('ename');
-    await prefs.remove('loggedInState');
-    await prefs.remove('othersPendingTasks');
-    await prefs.remove('classTeacher');
-    await prefs.remove('isOffSupdt');
-    await prefs.remove('isTptIncharge');
-    await prefs.remove('isHostelIncharge');
-    await prefs.remove('isAccountant');
-    await prefs.remove('isSubjectTeacher');
-    await prefs.remove('fy');
-    await prefs.remove('selfSubjectMap');
-    await prefs.remove('usernoT');
-    await prefs.remove('fyT');
-    await prefs.remove('notificationCount');
-    await prefs.remove('messageCount');
+    // get deviceToken from shared preferences
+    String? deviceToken = await prefs.getString('deviceToken');
+
+    // clear all prefs except deviceToken
+    await prefs.clear();
+    // set deviceToken back to shared preferences
+    await prefs.setString('deviceToken', deviceToken!);
+
+    // delete database by calling removeDatabase() in database_helper.dart
+    await DatabaseHelper().removeDatabase();
   }
 
   static void configLoading() {

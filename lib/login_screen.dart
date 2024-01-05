@@ -42,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
         'username': _usernameController.text,
         'password': _passwordController.text,
         'deviceToken': deviceToken,
+        'loginType': 'manual',
       },
     );
     //print("response = ${response.body}");
